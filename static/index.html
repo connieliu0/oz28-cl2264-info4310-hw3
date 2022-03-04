@@ -3,8 +3,109 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <style>
+      line.dashed {
+        stroke: #aaa;
+        stroke-width: 1px;
+        stroke-dasharray: 2;
+      }
+      /* text.axis {
+        text-anchor: end;
+        font-variant: all-small-caps;
+      } */
     </style>
   </head>
   <body>
-    <svg height=500 width=500></svg>
+    <svg id="bubble" height=400 width=600></svg>
+    <script>
+      const bubble = d3.select("#bubble");
+      const width = bubble.attr("width");
+      const height = bubble.attr("height")
+      const margins = {"top":10, "bottom":10, "left":10, "right": 10}
+      const chartWidth = width - margins.left - margins.right;
+      const chartHeight = height - margins.top - margins.bottom;
+
+      let annotations = bubble.append("g").attr("id", "annotations");
+      let points = bubble.append("g")
+                            .attr("id", "chartArea")
+                            .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+      const requestData = async function() {
+        //LOAD DATA
+        const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
+        console.log(restaurants);
+
+        restaurants.forEach(d => {
+          d['score'] = calculateScore(d);
+          d.x = d3.randomUniform(0, chartWidth)();
+          d.y = d3.randomUniform(0, chartHeight)();
+        });
+
+        const scoreExtent = d3.extent(restaurants, d => d.score);
+        console.log(scoreExtent)
+        const scoreScale = d3.scaleLinear().domain(scoreExtent).range([0, chartWidth]);
+
+        annotations.append("line")
+                   .attr("x1", scoreScale(scoreExtent[0])+margins.left)
+                   .attr("x2", scoreScale(scoreExtent[1])+margins.left)
+                   .attr("y1", chartHeight/2 + margins.top)
+                   .attr("y2", chartHeight/2 + margins.top)
+                   .attr("class", "dashed");
+
+        var scoreAxis = d3.axisBottom(scoreScale);
+        annotations.append("g")
+                   .attr("class", "x axis")
+                   .attr("transform", `translate(${margins.left},${chartHeight + margins.top + 10})`)
+                   .call(scoreAxis);
+
+        points.selectAll("circle").data(restaurants)
+              .join("circle")
+              .attr("r", d => 3)
+              .attr("cx", d => d.x)
+              .attr("cy", d => d.y)
+              .attr("fill", "steelblue");
+
+        var simulation = d3.forceSimulation()
+                           .nodes(restaurants)
+                           .force("ypos", d3.forceY()
+                                            .y(chartHeight/2)
+                                            .strength(0.05))
+                           .force("xpos", d3.forceX()
+                                            .x(d => {
+                                              // console.log(d)
+                                              // console.log(scoreScale(d.score))
+                                              return scoreScale(d.score)
+                                            })
+                                            .strength(0.05))
+                           .force("collision", d3.forceCollide()
+                                                 .radius(3)
+                                                 .iterations(2))
+                           .on("tick", updatePoints);
+
+        // simulation.stop();
+        // simulation.restart();
+        // simulation.stop();
+
+        function updatePoints() {
+          points.selectAll("circle")
+                .attr("cx", d => {
+                  console.log(d.x)
+                  return d.x})
+                .attr("cy", d => d.y);
+        }
+
+
+
+
+
+
+
+
+      }
+      requestData();
+
+      function calculateScore(d) {
+        res = d3.randomUniform(0,10)()
+        return res
+      }
+    </script>
   </body>
