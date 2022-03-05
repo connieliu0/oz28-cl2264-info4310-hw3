@@ -15,104 +15,128 @@
     </style>
   </head>
   <body>
-    <svg id="bubble" height=400 width=700></svg>
+    <svg id="bubble" height="400" width="700"></svg>
     <script>
       const bubble = d3.select("#bubble");
       const width = bubble.attr("width");
-      const height = bubble.attr("height")
-      const margins = {"top":10, "bottom":10, "left":30, "right": 30}
+      const height = bubble.attr("height");
+      const margins = { top: 10, bottom: 10, left: 30, right: 30 };
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
       let annotations = bubble.append("g").attr("id", "annotations");
-      let points = bubble.append("g")
-                            .attr("id", "chartArea")
-                            .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+      let points = bubble
+        .append("g")
+        .attr("id", "chartArea")
+        .attr(
+          "transform",
+          "translate(" + margins.left + "," + margins.top + ")"
+        );
 
-      const requestData = async function() {
+      const requestData = async function () {
         //LOAD DATA
         const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
         console.log(restaurants);
 
-        restaurants.forEach(d => {
-          d['score'] = calculateScore(d);
+        restaurants.forEach((d) => {
+          d["score"] = calculateScore(d);
           d.x = d3.randomUniform(0, chartWidth)();
           d.y = d3.randomUniform(0, chartHeight)();
         });
 
-        const scoreExtent = d3.extent(restaurants, d => d.score);
-        console.log(scoreExtent)
-        const scoreScale = d3.scaleLinear().domain(scoreExtent).range([0, chartWidth]);
-        const radScale = d3.scaleLinear().domain(scoreExtent).range([2,10])
+        const scoreExtent = d3.extent(restaurants, (d) => d.score);
+        console.log(scoreExtent);
+        const scoreScale = d3
+          .scaleLinear()
+          .domain(scoreExtent)
+          .range([0, chartWidth]);
+        const radScale = d3.scaleLinear().domain(scoreExtent).range([2, 10]);
 
-        annotations.append("line")
-                   .attr("x1", scoreScale(scoreExtent[0])+margins.left)
-                   .attr("x2", scoreScale(scoreExtent[1])+margins.left)
-                   .attr("y1", chartHeight/2 + margins.top)
-                   .attr("y2", chartHeight/2 + margins.top)
-                   .attr("class", "dashed");
+        annotations
+          .append("line")
+          .attr("x1", scoreScale(scoreExtent[0]) + margins.left)
+          .attr("x2", scoreScale(scoreExtent[1]) + margins.left)
+          .attr("y1", chartHeight / 2 + margins.top)
+          .attr("y2", chartHeight / 2 + margins.top)
+          .attr("class", "dashed");
 
-        console.log(scoreScale(""))
+        console.log(scoreScale(""));
 
-        var scoreAxis = d3.axisBottom(scoreScale)
-        annotations.append("g")
-                   .attr("class", "x axis")
-                   .attr("transform", `translate(${margins.left},${chartHeight - margins.top})`)
-                   .call(scoreAxis);
+        var scoreAxis = d3.axisBottom(scoreScale);
+        annotations
+          .append("g")
+          .attr("class", "x axis")
+          .attr(
+            "transform",
+            `translate(${margins.left},${chartHeight - margins.top})`
+          )
+          .call(scoreAxis);
 
-        points.selectAll("circle").data(restaurants)
-              .join("circle")
-              .attr("r", d => radScale(d.score))
-              .attr("cx", d => d.x)
-              .attr("cy", d => d.y)
+        points
+          .selectAll("circle")
+          .data(restaurants)
+          .join("circle")
+          .attr("r", (d) => radScale(d.score))
+          .attr("cx", (d) => d.x)
+          .attr("cy", (d) => d.y)
 
-              .attr("fill", "steelblue");
+          .attr("fill", "steelblue");
 
-        var simulation = d3.forceSimulation()
-                           .nodes(restaurants)
-                           // .force("center", d3.forceCenter()
-                           //                    .x(chartHeight/2)
-                           //                    .y(chartWidth/2)
-                           //                    .strength(0.05))
-                           .force("radial", d3.forceRadial()
-                                              .x(chartWidth/2)
-                                              .y(chartHeight/2)
-                                              .radius(100)
-                                              .strength(0.05))
-                           // .force("ypos", d3.forceY()
-                           //                  .y(chartHeight/2)
-                           //                  .strength(0.05))
-                           // .force("xpos", d3.forceX()
-                           //                  .x(d => {
-                           //                    // console.log(d)
-                           //                    // console.log(scoreScale(d.score))
-                           //                    return scoreScale(d.score)
-                           //                  })
-                           //                  .strength(0.05))
-                           .force("collision", d3.forceCollide()
-                                                 .radius(d => radScale(d.score)+2)
-                                                 .iterations(2))
-                           .on("tick", updatePoints);
+        var simulation = d3
+          .forceSimulation()
+          .nodes(restaurants)
+          // .force("center", d3.forceCenter()
+          //                    .x(chartHeight/2)
+          //                    .y(chartWidth/2)
+          //                    .strength(0.05))
+          .force(
+            "radial",
+            d3
+              .forceRadial()
+              .x(chartWidth / 2)
+              .y(chartHeight / 2)
+              .radius(100)
+              .strength(0.05)
+          )
+          // .force("ypos", d3.forceY()
+          //                  .y(chartHeight/2)
+          //                  .strength(0.05))
+          // .force("xpos", d3.forceX()
+          //                  .x(d => {
+          //                    // console.log(d)
+          //                    // console.log(scoreScale(d.score))
+          //                    return scoreScale(d.score)
+          //                  })
+          //                  .strength(0.05))
+          .force(
+            "collision",
+            d3
+              .forceCollide()
+              .radius((d) => radScale(d.score) + 2)
+              .iterations(2)
+          )
+          .on("tick", updatePoints);
 
         // simulation.stop();
         // simulation.restart();
         // simulation.stop();
 
         function updatePoints() {
-          points.selectAll("circle")
-                .attr("cx", d => {
-                  // console.log(d.x)
-                  return d.x})
-                .attr("cy", d => d.y);
+          points
+            .selectAll("circle")
+            .attr("cx", (d) => {
+              // console.log(d.x)
+              return d.x;
+            })
+            .attr("cy", (d) => d.y);
         }
-
-
-      }
+      };
       requestData();
 
       function calculateScore(d) {
-        res = d.rating/5
-        return res
+        res = d.rating / 5;
+        return res;
       }
     </script>
   </body>
+</html>
