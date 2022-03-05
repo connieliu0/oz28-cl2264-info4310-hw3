@@ -44,6 +44,7 @@
         console.log(scoreExtent)
         const scoreScale = d3.scaleLinear().domain(scoreExtent).range([0, chartWidth]);
         const radScale = d3.scaleLinear().domain(scoreExtent).range([2,10])
+        const forceScale = d3.scaleLinear().domain(scoreExtent).range([150,0])
 
         annotations.append("line")
                    .attr("x1", scoreScale(scoreExtent[0])+margins.left)
@@ -77,8 +78,8 @@
                            .force("radial", d3.forceRadial()
                                               .x(chartWidth/2)
                                               .y(chartHeight/2)
-                                              .radius(100)
-                                              .strength(0.05))
+                                              .radius(d=>forceScale(d.score))
+                                              .strength(1))
                            // .force("ypos", d3.forceY()
                            //                  .y(chartHeight/2)
                            //                  .strength(0.05))
