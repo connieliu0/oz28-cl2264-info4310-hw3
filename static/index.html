@@ -15,6 +15,15 @@
     </style>
   </head>
   <body>
+    <h3>Category</h3>
+    <input type="range" id="category" min="0" max="5" step="1" />
+    <h3>Neighborhood</h3>
+    <input type="range" id="neighborhood" min="0" max="5" step="1" />
+    <h3>Rating</h3>
+    <input type="range" id="rating" min="0" max="5" step="1" />
+    <div id="neigh-buttons"></div>
+    <div id="cat-buttons"></div>
+    <div id="rat-buttons"></div>
     <svg id="bubble" height="400" width="700"></svg>
     <script>
       const bubble = d3.select("#bubble");
@@ -33,6 +42,20 @@
           "translate(" + margins.left + "," + margins.top + ")"
         );
 
+      // sliders
+      var new_category = 0;
+      var new_neighborhood = 0;
+      var new_rating = 0;
+      d3.select("#category").on("input", function () {
+        new_category = d3.select(this).property("value");
+      });
+      d3.select("#neighborhood").on("input", function () {
+        new_neighborhood = d3.select(this).property("value");
+      });
+      d3.select("#rating").on("input", function () {
+        new_rating = d3.select(this).property("value");
+      });
+
       const requestData = async function () {
         //LOAD DATA
         const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
@@ -43,6 +66,10 @@
           d.x = d3.randomUniform(0, chartWidth)();
           d.y = d3.randomUniform(0, chartHeight)();
         });
+
+        var neighborhoodList = d3.map(restaurants, (d) => d["neighborhood"]);
+        var categoryList = d3.map(restaurants, (d) => d["categories"]);
+        var ratingList = d3.map(restaurants, (d) => d["rating"]);
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
         console.log(scoreExtent);
@@ -125,19 +152,63 @@
         function updatePoints() {
           points
             .selectAll("circle")
-            .attr("cx", (d) => {
-              // console.log(d.x)
-              return d.x;
-            })
+            .attr("cx", (d) => d.x)
             .attr("cy", (d) => d.y);
-        }
-      };
-      requestData();
+        };
+        function createFilters() {
+          // neighbors
+          neighbor_div = d3.select("div#neigh-buttons");
+          neighborhoodList.forEach((d) => {
+            neighbor_div
+              .append("button")
+              .text(d)
+              .on("click", function () {
+                // diffButtonClicked(d, d3.select(this));
+              });
+          });
+          // category
+          category_div = d3.select("div#cat-buttons");
+          categoryList.forEach((d) => {
+            category_div
+              .append("button")
+              .text(d)
+              .on("click", function () {
+                // if (currFilter === "") {
+                //   return;
+                // }
+                // currFilter = "";
+                // currFilterElt.style("background-color", "");
+                // currFilterElt.style("color", "");
+                // currFilterElt = null;
+                // filtered_data = filterDifficulty(currFilter, [...wordles]);
+              });
+          });
+          // rating list
+          rating_div = d3.select("div#rat-buttons");
+          ratingList.forEach((d) => {
+            rating_div
+              .append("button")
+              .text(d)
+              .on("click", function () {
+                // diffButtonClicked(d, d3.select(this));
+              });
+          });
+        };
+
+        createFilters();
+      }; //END REQUEST DATA
+
 
       function calculateScore(d) {
         res = d.rating / 5;
         return res;
-      }
+      };
+
+      requestData();
+
+
+
+
     </script>
   </body>
 </html>
