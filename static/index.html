@@ -77,18 +77,27 @@
         const restaurants = await d3.json("yelp_boston.json", d3.autoType);
         console.log(restaurants);
 
+        var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
+        var neighborhoodList = [...new Set(neighborhood)];
+        var category = d3.map(restaurants, (d) => d["categories"]);
+        var categoryList = []
+        var rating = d3.map(restaurants, (d) => d["rating"]);
+        var ratingList = [...new Set(rating)];
+
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
           d.x = d3.randomUniform(0, chartWidth)();
           d.y = d3.randomUniform(0, chartHeight)();
+          d['categories'].forEach(c => {
+            if (!categoryList.includes(c)) {
+              categoryList.push(c);
+            }
+          })
         });
 
-        var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
-        var neighborhoodList = [...new Set(neighborhood)];
-        var category = d3.map(restaurants, (d) => d["categories"]);
-        var categoryList = [...new Set(category)];
-        var rating = d3.map(restaurants, (d) => d["rating"]);
-        var ratingList = [...new Set(rating)];
+        neighborhoodList = neighborhoodList.filter(d => d !== "")
+        console.log(categoryList)
+        console.log(neighborhoodList)
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
         console.log(scoreExtent);

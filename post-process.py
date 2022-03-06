@@ -17,6 +17,7 @@ def process_row(row):
         'categories': categories,
         'rating': float(row['rating']),
         'location': json.loads(row['location']),
+        'neighborhood': row['neighborhood'],
         'latitude': float(row['latitude']),
         'longitude': float(row['longitude']),
         'search_category': row['search category']
