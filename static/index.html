@@ -8,6 +8,10 @@
         stroke-width: 1px;
         stroke-dasharray: 2;
       }
+      .row {
+        display: flex;
+        flex-direction: row;
+      }
       /* text.axis {
         text-anchor: end;
         font-variant: all-small-caps;
@@ -15,12 +19,20 @@
     </style>
   </head>
   <body>
-    <h3>Category</h3>
-    <input type="range" id="category" min="0" max="5" step="1" />
-    <h3>Neighborhood</h3>
-    <input type="range" id="neighborhood" min="0" max="5" step="1" />
-    <h3>Rating</h3>
-    <input type="range" id="rating" min="0" max="5" step="1" />
+    <div class="row">
+      <div class="slide">
+        <h3>Category</h3>
+        <input type="range" id="category" min="0" max="5" step="1" />
+      </div>
+      <div class="slide">
+        <h3>Neighborhood</h3>
+        <input type="range" id="neighborhood" min="0" max="5" step="1" />
+      </div>
+      <div class="slide">
+        <h3>Rating</h3>
+        <input type="range" id="rating" min="0" max="5" step="1" />
+      </div>
+    </div>
     <div id="neigh-buttons"></div>
     <div id="cat-buttons"></div>
     <div id="rat-buttons"></div>
@@ -67,9 +79,12 @@
           d.y = d3.randomUniform(0, chartHeight)();
         });
 
-        var neighborhoodList = d3.map(restaurants, (d) => d["neighborhood"]);
-        var categoryList = d3.map(restaurants, (d) => d["categories"]);
-        var ratingList = d3.map(restaurants, (d) => d["rating"]);
+        var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
+        var neighborhoodList = [...new Set(neighborhood)];
+        var category = d3.map(restaurants, (d) => d["categories"]);
+        var categoryList = [...new Set(category)];
+        var rating = d3.map(restaurants, (d) => d["rating"]);
+        var ratingList = [...new Set(rating)];
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
         console.log(scoreExtent);
@@ -154,7 +169,7 @@
             .selectAll("circle")
             .attr("cx", (d) => d.x)
             .attr("cy", (d) => d.y);
-        };
+        }
         function createFilters() {
           // neighbors
           neighbor_div = d3.select("div#neigh-buttons");
@@ -193,22 +208,17 @@
                 // diffButtonClicked(d, d3.select(this));
               });
           });
-        };
+        }
 
         createFilters();
       }; //END REQUEST DATA
 
-
       function calculateScore(d) {
         res = d.rating / 5;
         return res;
-      };
+      }
 
       requestData();
-
-
-
-
     </script>
   </body>
 </html>
