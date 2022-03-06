@@ -12,6 +12,11 @@
         display: flex;
         flex-direction: row;
       }
+      .col {
+        width:400px;
+        display: flex;
+        flex-direction: column;
+      }
       /* text.axis {
         text-anchor: end;
         font-variant: all-small-caps;
@@ -19,6 +24,8 @@
     </style>
   </head>
   <body>
+  <div class="row">
+    <div class="col">
     <div class="row">
       <div class="slide">
         <h3>Category</h3>
@@ -39,7 +46,12 @@
     <div id="cat-buttons"></div>
     <h3>Choose your Rating</h3>
     <div id="rat-buttons"></div>
-    <svg id="bubble" height="400" width="700"></svg>
+</div>
+<svg id="bubble" height="400" width="700"></svg>
+
+</div>
+</div>
+
     <script>
       const bubble = d3.select("#bubble");
       const width = bubble.attr("width");
@@ -58,11 +70,11 @@
         );
 
       //initialization of global vars
-      var categoryWeight = 1
+      var categoryWeight = 1;
       var chosenCategory = [];
-      var neighborhoodWeight = 1
+      var neighborhoodWeight = 1;
       var chosenNeighborhood = [];
-      var ratingWeight = 1
+      var ratingWeight = 1;
       var chosenRating = [];
 
       const requestData = async function () {
@@ -73,23 +85,26 @@
         var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
         var neighborhoodList = [...new Set(neighborhood)];
         var category = d3.map(restaurants, (d) => d["categories"]);
-        var categoryList = []
+        var categoryList = [];
         var rating = d3.map(restaurants, (d) => d["rating"]);
         var ratingList = [...new Set(rating)];
 
-        neighborhoodList = neighborhoodList.filter(d => d !== "")
+        neighborhoodList = neighborhoodList.filter((d) => d !== "");
 
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
           d.x = d3.randomUniform(0, chartWidth)();
           d.y = d3.randomUniform(0, chartHeight)();
-          d['categories'].forEach(c => {
+          d["categories"].forEach((c) => {
             if (!categoryList.includes(c)) {
               categoryList.push(c);
             }
-          })
+          });
         });
 
+        neighborhoodList = neighborhoodList.filter((d) => d !== "");
+        console.log(categoryList);
+        console.log(neighborhoodList);
         // create sliders
         d3.select("#category").on("input", function () {
           categoryWeight = parseInt(d3.select(this).property("value"));
@@ -100,7 +115,10 @@
           resetSim();
         });
         d3.select("#rating").on("input", function () {
+          console.log("chage")
+          console.log(d3.select(this).property("value"))
           ratingWeight = parseInt(d3.select(this).property("value"));
+          console.log("hi",ratingWeight)
           resetSim();
         });
 
@@ -233,13 +251,53 @@
 
         createFilters();
       }; //END REQUEST DATA
+      // citation: https://www.codespeedy.com/get-common-elements-from-two-arrays-in-javascript/
+      function getCommon(arr1, arr2) {
+        // var common = []; // Array to contain common elements
+        // for (var i = 0; i < arr1.length; ++i) {
+        //   for (var j = 0; j < arr2.length; ++j) {
+        //     if (arr1[i] == arr2[j]) {
+        //       // If element is in both the arrays
+        //       common.push(arr1[i]); // Push to common array
+        //     }
+        //   }
+        // }
+        // console.log(arr1)
+        common = [...arr1].filter(d => arr2.includes(d));
 
+        return common
+      }
       function calculateScore(d) {
-        // console.log(neighborhoodWeight,ratingWeight,categoryWeight)
-        rating = d.rating / 5;
-        console.log(typeof(rating))
-        final = neighborhoodWeight + rating*ratingWeight + categoryWeight
-        console.log(typeof(final))
+        rating = [d.rating];
+        cat = 0;
+        neigh = 0;
+        commonCategory = getCommon(d.categories, chosenCategory);
+        commonRating = getCommon(rating, chosenRating);
+        commonNeighborhood = getCommon(d.neighborhood, chosenNeighborhood);
+        // console.log(commonNeighborhood);
+        // console.log(commonRating);
+        // console.log(commonCategory);
+        if (commonCategory.length > 0) {
+          cat = commonCategory.length;
+        } else {
+          cat = 0;
+        }
+        if (commonRating.length > 0) {
+          res = commonRating.length;
+        } else {
+          res = 0;
+        }
+        if (commonNeighborhood.length > 0) {
+          neigh = 1;
+        } else {
+          neigh = 0;
+        }
+        console.log(ratingWeight)
+        var final =
+          neigh * parseInt(neighborhoodWeight) +
+          rating * parseInt(ratingWeight) +
+          cat * parseInt(categoryWeight);
+        console.log(final)
         return final;
       }
       requestData();
