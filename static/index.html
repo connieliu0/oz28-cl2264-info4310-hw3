@@ -22,15 +22,15 @@
     <div class="row">
       <div class="slide">
         <h3>Category</h3>
-        <input type="range" id="category" min="0" max="5" step="1" />
+        <input type="range" id="category" min="0" max="1" step=".1" />
       </div>
       <div class="slide">
         <h3>Neighborhood</h3>
-        <input type="range" id="neighborhood" min="0" max="5" step="1" />
+        <input type="range" id="neighborhood" min="0" max="1" step=".1" />
       </div>
       <div class="slide">
         <h3>Rating</h3>
-        <input type="range" id="rating" min="0" max="5" step="1" />
+        <input type="range" id="rating" min="0" max="1" step=".1" />
       </div>
     </div>
     <h3>Choose your Neighborhood</h3>
@@ -57,23 +57,16 @@
           "translate(" + margins.left + "," + margins.top + ")"
         );
 
-      // sliders
-      var new_category = 0;
-      var new_neighborhood = 0;
-      var new_rating = 0;
-      d3.select("#category").on("input", function () {
-        new_category = d3.select(this).property("value");
-      });
-      d3.select("#neighborhood").on("input", function () {
-        new_neighborhood = d3.select(this).property("value");
-      });
-      d3.select("#rating").on("input", function () {
-        new_rating = d3.select(this).property("value");
-      });
+      //initialization of global vars
+      var categoryWeight = 1
+      var chosenCategory = [];
+      var neighborhoodWeight = 1
+      var chosenNeighborhood = [];
+      var ratingWeight = 1
+      var chosenRating = [];
 
       const requestData = async function () {
         //LOAD DATA
-        // const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
         const restaurants = await d3.json("yelp_boston.json", d3.autoType);
         console.log(restaurants);
 
@@ -83,6 +76,8 @@
         var categoryList = []
         var rating = d3.map(restaurants, (d) => d["rating"]);
         var ratingList = [...new Set(rating)];
+
+        neighborhoodList = neighborhoodList.filter(d => d !== "")
 
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
@@ -95,12 +90,24 @@
           })
         });
 
-        neighborhoodList = neighborhoodList.filter(d => d !== "")
-        console.log(categoryList)
-        console.log(neighborhoodList)
+        // create sliders
+        d3.select("#category").on("input", function () {
+          categoryWeight = d3.select(this).property("value");
+          updatePoints();
+          simulation.restart();
+        });
+        d3.select("#neighborhood").on("input", function () {
+          neighborhoodWeight = d3.select(this).property("value");
+          updatePoints();
+          simulation.restart();
+        });
+        d3.select("#rating").on("input", function () {
+          ratingWeight = d3.select(this).property("value");
+          updatePoints();
+          simulation.restart();
+        });
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
-        console.log(scoreExtent);
         const scoreScale = d3
           .scaleLinear()
           .domain(scoreExtent)
@@ -115,8 +122,6 @@
           .attr("y1", chartHeight / 2 + margins.top)
           .attr("y2", chartHeight / 2 + margins.top)
           .attr("class", "dashed");
-
-        console.log(scoreScale(""));
 
         var scoreAxis = d3.axisBottom(scoreScale);
         annotations
@@ -177,18 +182,14 @@
         // simulation.restart();
 
         function updatePoints() {
-
           points
             .selectAll("circle")
             .attr("cx", (d) => d.x)
             .attr("cy", (d) => d.y)
             .attr("score", d => calculateScore(d));
         }
+
         function createFilters() {
-          // starter variables
-          var chosenNeighborhood = null;
-          var chosenCategory = null;
-          var chosenRating = null;
           // neighbors
           neighbor_div = d3.select("div#neigh-buttons");
           neighborhoodList.forEach((d) => {
@@ -225,11 +226,8 @@
       }; //END REQUEST DATA
 
       function calculateScore(d) {
-        res = d.rating / 5;
-        var final =
-          parseInt(new_neighborhood) +
-          res * parseInt(new_rating) +
-          parseInt(new_category);
+        rating = d.rating / 5;
+        final = neighborhoodWeight + rating*ratingWeight + categoryWeight
         return final;
       }
       requestData();
