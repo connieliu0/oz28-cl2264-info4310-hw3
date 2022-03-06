@@ -22,6 +22,7 @@
       console.log(neighborhoodExtent);
       var neighborhoodlist = d3.map(restaurants, (d) => d["neighborhood"]);
       var categorylist = d3.map(restaurants, (d) => d["categories"]);
+      console.log(categorylist);
       var ratinglist = d3.map(restaurants, (d) => d["rating"]);
       // currfilter dictionary of arrays, and then append on select
       // buttons
@@ -39,19 +40,16 @@
         // category
         category_div = d3.select("div#cat-buttons");
         categorylist.forEach((d) => {
-          category_div
-            .append("button")
-            .text("Clear")
-            .on("click", function () {
-              // if (currFilter === "") {
-              //   return;
-              // }
-              // currFilter = "";
-              // currFilterElt.style("background-color", "");
-              // currFilterElt.style("color", "");
-              // currFilterElt = null;
-              // filtered_data = filterDifficulty(currFilter, [...wordles]);
-            });
+          category_div.append("button").on("click", function () {
+            // if (currFilter === "") {
+            //   return;
+            // }
+            // currFilter = "";
+            // currFilterElt.style("background-color", "");
+            // currFilterElt.style("color", "");
+            // currFilterElt = null;
+            // filtered_data = filterDifficulty(currFilter, [...wordles]);
+          });
         });
         // rating list
         rating_div = d3.select("div#rat-buttons");
