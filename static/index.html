@@ -80,7 +80,7 @@
         var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
         var neighborhoodList = [...new Set(neighborhood)];
         var category = d3.map(restaurants, (d) => d["categories"]);
-        var categoryList = []
+        var categoryList = [];
         var rating = d3.map(restaurants, (d) => d["rating"]);
         var ratingList = [...new Set(rating)];
 
@@ -88,16 +88,16 @@
           d["score"] = calculateScore(d);
           d.x = d3.randomUniform(0, chartWidth)();
           d.y = d3.randomUniform(0, chartHeight)();
-          d['categories'].forEach(c => {
+          d["categories"].forEach((c) => {
             if (!categoryList.includes(c)) {
               categoryList.push(c);
             }
-          })
+          });
         });
 
-        neighborhoodList = neighborhoodList.filter(d => d !== "")
-        console.log(categoryList)
-        console.log(neighborhoodList)
+        neighborhoodList = neighborhoodList.filter((d) => d !== "");
+        console.log(categoryList);
+        console.log(neighborhoodList);
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
         console.log(scoreExtent);
@@ -222,13 +222,44 @@
 
         createFilters();
       }; //END REQUEST DATA
+      // citation: https://www.codespeedy.com/get-common-elements-from-two-arrays-in-javascript/
+      function getCommon(arr1, arr2) {
+        var common = []; // Array to contain common elements
+        for (var i = 0; i < arr1.length; ++i) {
+          for (var j = 0; j < arr2.length; ++j) {
+            if (arr1[i] == arr2[j]) {
+              // If element is in both the arrays
+              common.push(arr1[i]); // Push to common array
+            }
+          }
+        }
 
+        return common;
+      }
       function calculateScore(d) {
         res = d.rating / 5;
+        var cat = 0;
+        var neigh = 0;
+
+        if (d.category === chosenCategory) {
+          cat = 1;
+        } else {
+          cat = 0;
+        }
+        if (d.rating === chosenRating) {
+          res = 1;
+        } else {
+          res = 0;
+        }
+        if (d.neighborhood === chosenNeighborhood) {
+          neigh = 1;
+        } else {
+          neigh = 0;
+        }
         var final =
-          parseInt(new_neighborhood) +
+          neigh * parseInt(new_neighborhood) +
           res * parseInt(new_rating) +
-          parseInt(new_category);
+          cat * parseInt(new_category);
         return final;
       }
       requestData();
