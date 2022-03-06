@@ -22,15 +22,15 @@
     <div class="row">
       <div class="slide">
         <h3>Category</h3>
-        <input type="range" id="category" min="0" max="1" step=".1" />
+        <input type="range" id="category" min=0 max=1 step=0.1 />
       </div>
       <div class="slide">
         <h3>Neighborhood</h3>
-        <input type="range" id="neighborhood" min="0" max="1" step=".1" />
+        <input type="range" id="neighborhood" min=0 max=1 step=0.1 />
       </div>
       <div class="slide">
         <h3>Rating</h3>
-        <input type="range" id="rating" min="0" max="1" step=".1" />
+        <input type="range" id="rating" min=0 max=1 step=0.1 />
       </div>
     </div>
     <h3>Choose your Neighborhood</h3>
@@ -51,7 +51,7 @@
       let annotations = bubble.append("g").attr("id", "annotations");
       let points = bubble
         .append("g")
-        .attr("id", "chartArea")
+        .attr("id", "points")
         .attr(
           "transform",
           "translate(" + margins.left + "," + margins.top + ")"
@@ -92,19 +92,16 @@
 
         // create sliders
         d3.select("#category").on("input", function () {
-          categoryWeight = d3.select(this).property("value");
-          updatePoints();
-          simulation.restart();
+          categoryWeight = parseInt(d3.select(this).property("value"));
+          resetSim();
         });
         d3.select("#neighborhood").on("input", function () {
-          neighborhoodWeight = d3.select(this).property("value");
-          updatePoints();
-          simulation.restart();
+          neighborhoodWeight = parseInt(d3.select(this).property("value"));
+          resetSim();
         });
         d3.select("#rating").on("input", function () {
-          ratingWeight = d3.select(this).property("value");
-          updatePoints();
-          simulation.restart();
+          ratingWeight = parseInt(d3.select(this).property("value"));
+          resetSim();
         });
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
@@ -185,8 +182,20 @@
           points
             .selectAll("circle")
             .attr("cx", (d) => d.x)
-            .attr("cy", (d) => d.y)
-            .attr("score", d => calculateScore(d));
+            .attr("cy", (d) => d.y);
+        }
+
+        function updateScores() {
+          restaurants.forEach(d => {
+            d.score = calculateScore(d)
+          })
+        }
+
+        function resetSim() {
+          updateScores();
+          simulation.nodes(restaurants)
+          simulation.alpha(1);
+          simulation.restart();
         }
 
         function createFilters() {
@@ -226,8 +235,11 @@
       }; //END REQUEST DATA
 
       function calculateScore(d) {
+        // console.log(neighborhoodWeight,ratingWeight,categoryWeight)
         rating = d.rating / 5;
+        console.log(typeof(rating))
         final = neighborhoodWeight + rating*ratingWeight + categoryWeight
+        console.log(typeof(final))
         return final;
       }
       requestData();
