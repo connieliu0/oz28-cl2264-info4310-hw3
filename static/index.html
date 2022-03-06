@@ -175,13 +175,14 @@
 
         // simulation.stop();
         // simulation.restart();
-        // simulation.stop();
 
         function updatePoints() {
+
           points
             .selectAll("circle")
             .attr("cx", (d) => d.x)
-            .attr("cy", (d) => d.y);
+            .attr("cy", (d) => d.y)
+            .attr("score", d => calculateScore(d));
         }
         function createFilters() {
           // neighbors
