@@ -17,10 +17,6 @@
         display: flex;
         flex-direction: column;
       }
-      /* text.axis {
-        text-anchor: end;
-        font-variant: all-small-caps;
-      } */
     </style>
   </head>
   <body>
@@ -48,7 +44,6 @@
     <div id="rat-buttons"></div>
 </div>
 <svg id="bubble" height="400" width="700"></svg>
-
 </div>
 </div>
 
@@ -106,20 +101,24 @@
         console.log(categoryList);
         console.log(neighborhoodList);
         // create sliders
-        d3.select("#category").on("input", function () {
-          categoryWeight = parseInt(d3.select(this).property("value"));
-          resetSim();
+        d3.select("#category")
+          .attr('value', 1)
+          .on("input", function () {
+            categoryWeight = parseInt(d3.select(this).property("value"));
+            resetSim();
         });
-        d3.select("#neighborhood").on("input", function () {
-          neighborhoodWeight = parseInt(d3.select(this).property("value"));
-          resetSim();
+        d3.select("#neighborhood")
+          .attr('value', 1)
+          .on("input", function () {
+            neighborhoodWeight = parseInt(d3.select(this).property("value"));
+            resetSim();
         });
-        d3.select("#rating").on("input", function () {
-          console.log("chage")
-          console.log(d3.select(this).property("value"))
-          ratingWeight = parseInt(d3.select(this).property("value"));
-          console.log("hi",ratingWeight)
-          resetSim();
+        d3.select("#rating")
+          .attr('value', 1)
+          .on("input", function () {
+            ratingWeight = d3.select(this).property("value");
+            console.log("ratingweight",ratingWeight)
+            resetSim();
         });
 
         const scoreExtent = d3.extent(restaurants, (d) => d.score);
@@ -130,23 +129,23 @@
         const radScale = d3.scaleLinear().domain(scoreExtent).range([2, 10]);
         const forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 0]);
 
-        annotations
-          .append("line")
-          .attr("x1", scoreScale(scoreExtent[0]) + margins.left)
-          .attr("x2", scoreScale(scoreExtent[1]) + margins.left)
-          .attr("y1", chartHeight / 2 + margins.top)
-          .attr("y2", chartHeight / 2 + margins.top)
-          .attr("class", "dashed");
+        // annotations
+        //   .append("line")
+        //   .attr("x1", scoreScale(scoreExtent[0]) + margins.left)
+        //   .attr("x2", scoreScale(scoreExtent[1]) + margins.left)
+        //   .attr("y1", chartHeight / 2 + margins.top)
+        //   .attr("y2", chartHeight / 2 + margins.top)
+        //   .attr("class", "dashed");
 
-        var scoreAxis = d3.axisBottom(scoreScale);
-        annotations
-          .append("g")
-          .attr("class", "x axis")
-          .attr(
-            "transform",
-            `translate(${margins.left},${chartHeight - margins.top})`
-          )
-          .call(scoreAxis);
+        // var scoreAxis = d3.axisBottom(scoreScale);
+        // annotations
+        //   .append("g")
+        //   .attr("class", "x axis")
+        //   .attr(
+        //     "transform",
+        //     `translate(${margins.left},${chartHeight - margins.top})`
+        //   )
+        //   .call(scoreAxis);
 
         points
           .selectAll("circle")
@@ -268,11 +267,12 @@
         return common
       }
       function calculateScore(d) {
-        rating = [d.rating];
+        console.log(ratingWeight)
+        rating = d.rating;
         cat = 0;
         neigh = 0;
         commonCategory = getCommon(d.categories, chosenCategory);
-        commonRating = getCommon(rating, chosenRating);
+        // commonRating = getCommon(rating, chosenRating);
         commonNeighborhood = getCommon(d.neighborhood, chosenNeighborhood);
         // console.log(commonNeighborhood);
         // console.log(commonRating);
@@ -282,22 +282,22 @@
         } else {
           cat = 0;
         }
-        if (commonRating.length > 0) {
-          res = commonRating.length;
-        } else {
-          res = 0;
-        }
+        // if (commonRating.length > 0) {
+        //   res = commonRating.length;
+        // } else {
+        //   res = 0;
+        // }
         if (commonNeighborhood.length > 0) {
           neigh = 1;
         } else {
           neigh = 0;
         }
-        console.log(ratingWeight)
+        // console.log(ratingWeight)
         var final =
           neigh * parseInt(neighborhoodWeight) +
-          rating * parseInt(ratingWeight) +
+          rating * ratingWeight +
           cat * parseInt(categoryWeight);
-        console.log(final)
+        // console.log(final)
         return final;
       }
       requestData();
