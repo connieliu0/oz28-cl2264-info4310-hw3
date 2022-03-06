@@ -185,6 +185,10 @@
             .attr("score", d => calculateScore(d));
         }
         function createFilters() {
+          // starter variables
+          var chosenNeighborhood = null;
+          var chosenCategory = null;
+          var chosenRating = null;
           // neighbors
           neighbor_div = d3.select("div#neigh-buttons");
           neighborhoodList.forEach((d) => {
@@ -192,7 +196,7 @@
               .append("button")
               .text(d)
               .on("click", function () {
-                // diffButtonClicked(d, d3.select(this));
+                chosenNeighborhood = d3.select(this).text();
               });
           });
           // category
@@ -202,14 +206,7 @@
               .append("button")
               .text(d)
               .on("click", function () {
-                // if (currFilter === "") {
-                //   return;
-                // }
-                // currFilter = "";
-                // currFilterElt.style("background-color", "");
-                // currFilterElt.style("color", "");
-                // currFilterElt = null;
-                // filtered_data = filterDifficulty(currFilter, [...wordles]);
+                chosenCategory = d3.select(this).text();
               });
           });
           // rating list
@@ -219,7 +216,7 @@
               .append("button")
               .text(d)
               .on("click", function () {
-                // diffButtonClicked(d, d3.select(this));
+                chosenRating = d3.select(this).text();
               });
           });
         }
@@ -229,9 +226,12 @@
 
       function calculateScore(d) {
         res = d.rating / 5;
-        return res;
+        var final =
+          parseInt(new_neighborhood) +
+          res * parseInt(new_rating) +
+          parseInt(new_category);
+        return final;
       }
-
       requestData();
     </script>
   </body>
