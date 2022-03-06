@@ -58,7 +58,8 @@
 
       const requestData = async function () {
         //LOAD DATA
-        const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
+        // const restaurants = await d3.csv("yelp_boston.csv", d3.autoType);
+        const restaurants = await d3.json("yelp_boston.json", d3.autoType);
         console.log(restaurants);
 
         restaurants.forEach((d) => {
