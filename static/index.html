@@ -25,23 +25,23 @@
     <div class="row">
       <div class="slide">
         <h3>Category</h3>
-        <input type="range" id="category" min=0 max=1 step=0.1 />
+        <input type="range" id="category" min=0 max=100 step=1 />
       </div>
       <div class="slide">
         <h3>Neighborhood</h3>
-        <input type="range" id="neighborhood" min=0 max=1 step=0.1 />
+        <input type="range" id="neighborhood" min=0 max=100 step=1 />
       </div>
       <div class="slide">
         <h3>Rating</h3>
-        <input type="range" id="rating" min=0 max=1 step=0.1 />
+        <input type="range" id="rating" min=0 max=100 step=1 />
       </div>
     </div>
     <h3>Choose your Neighborhood</h3>
-    <div id="neigh-buttons"></div>
+    <div id="neighborhood-buttons"></div>
     <h3>Choose your Category</h3>
-    <div id="cat-buttons"></div>
+    <div id="category-buttons"></div>
     <h3>Choose your Rating</h3>
-    <div id="rat-buttons"></div>
+    <div id="rating-buttons"></div>
 </div>
 <svg id="bubble" height="400" width="700"></svg>
 </div>
@@ -65,16 +65,14 @@
         );
 
       //initialization of global vars
-      var categoryWeight = 1;
-      var chosenCategory = [];
-      var neighborhoodWeight = 1;
-      var chosenNeighborhood = [];
-      var ratingWeight = 1;
-      var chosenRating = [];
+      let filterTypes = ['category', 'neighborhood', 'rating']
+      let selectedFilters = {"category":[], "neighborhood":[], "rating":[]}
+      let weights = {'category':33, 'neighborhood':33, 'rating':33}
 
       const requestData = async function () {
         //LOAD DATA
-        const restaurants = await d3.json("yelp_boston.json", d3.autoType);
+        const all_restaurants = await d3.json("yelp_boston.json", d3.autoType);
+        const restaurants = [...all_restaurants]
         console.log(restaurants);
 
         var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
@@ -85,6 +83,8 @@
         var ratingList = [...new Set(rating)];
 
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
+        let filterLists = {'category':categoryList, 'neighborhood':neighborhoodList, 'rating':ratingList}
+
 
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
@@ -100,34 +100,42 @@
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         console.log(categoryList);
         console.log(neighborhoodList);
-        // create sliders
-        d3.select("#category")
-          .attr('value', 1)
-          .on("input", function () {
-            categoryWeight = parseInt(d3.select(this).property("value"));
-            resetSim();
-        });
-        d3.select("#neighborhood")
-          .attr('value', 1)
-          .on("input", function () {
-            neighborhoodWeight = parseInt(d3.select(this).property("value"));
-            resetSim();
-        });
-        d3.select("#rating")
-          .attr('value', 1)
-          .on("input", function () {
-            ratingWeight = d3.select(this).property("value");
-            console.log("ratingweight",ratingWeight)
-            resetSim();
-        });
 
-        const scoreExtent = d3.extent(restaurants, (d) => d.score);
-        const scoreScale = d3
-          .scaleLinear()
-          .domain(scoreExtent)
-          .range([0, chartWidth]);
-        const radScale = d3.scaleLinear().domain(scoreExtent).range([2, 10]);
-        const forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 0]);
+        // create sliders
+        filterTypes.forEach(d => {
+          d3.select(`#${d}`)
+            .attr('value', 33)
+            .on("input", function () {
+              sliderMoved(d3.select(this), d);
+              resetSim();
+          });
+        });
+        // d3.select("#category")
+        //   .attr('value', 1)
+        //   .on("input", function () {
+        //     weights['category'] = parseInt(d3.select(this).property("value"));
+        //     resetSim();
+        // });
+        // d3.select("#neighborhood")
+        //   .attr('value', 1)
+        //   .on("input", function () {
+        //     neighborhoodWeight = parseInt(d3.select(this).property("value"));
+        //     resetSim();
+        // });
+        // d3.select("#rating")
+        //   .attr('value', 1)
+        //   .on("input", function () {
+        //     ratingWeight = d3.select(this).property("value");
+        //     console.log("ratingweight",ratingWeight)
+        //     resetSim();
+        // });
+
+        // SCALES
+        // let scoreExtent = d3.extent(restaurants, (d) => d.score);
+        let scoreExtent = [0,10]
+        let scoreScale = d3.scaleLinear().domain(scoreExtent).range([0, chartWidth]);
+        let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 12]);
+        let forceScale = d3.scaleLinear().domain(scoreExtent).range([100, 10]);
 
         // annotations
         //   .append("line")
@@ -192,12 +200,10 @@
           )
           .on("tick", updatePoints);
 
-        // simulation.stop();
-        // simulation.restart();
-
         function updatePoints() {
           points
             .selectAll("circle")
+            .attr("r", d => radScale(d.score))
             .attr("cx", (d) => d.x)
             .attr("cy", (d) => d.y);
         }
@@ -206,6 +212,9 @@
           restaurants.forEach(d => {
             d.score = calculateScore(d)
           })
+
+          // forceScale.domain(d3.extent(restaurants, d => d.score))
+          // radScale.domain(d3.extent(restaurants, d => d.score))
         }
 
         function resetSim() {
@@ -215,70 +224,142 @@
           simulation.restart();
         }
 
+        function filterClicked(elt, type) {
+          selected = elt.text()
+          console.log(elt.text())
+          console.log(elt.attr("clicked"))
+          console.log(selectedFilters[type])
+          if (elt.attr("clicked") === 'false') {
+            selectedFilters[type].push(selected);
+            elt.attr("clicked", "true")
+          }
+          else {
+            selectedFilters[type] = selectedFilters[type].filter(d => d !== selected)
+            elt.attr("clicked", "false")
+          }
+
+          //REFILTER DATA AND RESTART SIM
+          resetSim()
+        }
+
         function createFilters() {
+          filterTypes.forEach(type => {
+            container = d3.select(`div#${type}-buttons`);
+            filterLists[type].forEach((d) => {
+              container
+                .append("button")
+                .attr("clicked", "false")
+                .text(d)
+                .on("click", function () {
+                  filterClicked(d3.select(this), type);
+                });
+            });
+          })
           // neighbors
-          neighbor_div = d3.select("div#neigh-buttons");
-          neighborhoodList.forEach((d) => {
-            neighbor_div
-              .append("button")
-              .text(d)
-              .on("click", function () {
-                chosenNeighborhood = d3.select(this).text();
-              });
-          });
-          // category
-          category_div = d3.select("div#cat-buttons");
-          categoryList.forEach((d) => {
-            category_div
-              .append("button")
-              .text(d)
-              .on("click", function () {
-                chosenCategory = d3.select(this).text();
-              });
-          });
-          // rating list
-          rating_div = d3.select("div#rat-buttons");
-          ratingList.forEach((d) => {
-            rating_div
-              .append("button")
-              .text(d)
-              .on("click", function () {
-                chosenRating = d3.select(this).text();
-              });
-          });
+          // neighbor_div = d3.select("div#neigh-buttons");
+          // neighborhoodList.forEach((d) => {
+          //   neighbor_div
+          //     .append("button")
+          //     .attr("clicked", "false")
+          //     .text(d)
+          //     .on("click", function () {
+          //       neighborhoodFilterClicked(d3.select(this));
+          //     });
+          // });
+          // // category
+          // category_div = d3.select("div#cat-buttons");
+          // categoryList.forEach((d) => {
+          //   category_div
+          //     .append("button")
+          //     .text(d)
+          //     .on("click", function () {
+          //       chosenCategory.append(d3.select(this).text());
+          //     });
+          // });
+          // // rating list
+          // rating_div = d3.select("div#rat-buttons");
+          // ratingList.forEach((d) => {
+          //   rating_div
+          //     .append("button")
+          //     .text(d)
+          //     .on("click", function () {
+          //       chosenRating = d3.select(this).text();
+          //     });
+          // });
+        }
+
+        function filterData() {
+          filtered = []
+          restaurants.forEach(d => {
+
+          })
+        }
+
+        function sliderMoved(elt, d) {
+          old_weight = weights[d]
+          new_weight = parseInt(elt.property("value"));
+          diff = old_weight-new_weight
+          // console.log(diff)
+          console.log(weights)
+
+          others = filterTypes.filter(k => k !== d)
+          if (weights[others[0]] >= 100 && diff > 0) {
+            weights[others[1]] = weights[others[1]] + diff
+          }
+          else if (weights[others[1]] >= 100 && diff > 0) {
+            weights[others[0]] = weights[others[0]] + diff
+          }
+          else if (weights[others[0]] <= 0 && diff < 0) {
+            weights[others[1]] = weights[others[1]] + diff
+          }
+          else if (weights[others[1]] <= 0 && diff < 0) {
+            weights[others[0]] = weights[others[0]] + diff
+          }
+          else {
+            weights[others[0]] = weights[others[0]] + diff/2
+            weights[others[1]] = weights[others[1]] + diff/2
+          }
+
+          weights[d] = new_weight
+
+          filterTypes.forEach(f => {
+            console.log(f, d3.select(`input#${f}`).attr('value'))
+            d3.select(`input#${f}`).attr('value', weights[f])
+            console.log(f, d3.select(`input#${f}`).attr('value'))
+
+          })
+          console.log(weights)
+
         }
 
         createFilters();
       }; //END REQUEST DATA
       // citation: https://www.codespeedy.com/get-common-elements-from-two-arrays-in-javascript/
       function getCommon(arr1, arr2) {
-        // var common = []; // Array to contain common elements
-        // for (var i = 0; i < arr1.length; ++i) {
-        //   for (var j = 0; j < arr2.length; ++j) {
-        //     if (arr1[i] == arr2[j]) {
-        //       // If element is in both the arrays
-        //       common.push(arr1[i]); // Push to common array
-        //     }
-        //   }
-        // }
+        var common = []; // Array to contain common elements
+        for (var i = 0; i < arr1.length; ++i) {
+          for (var j = 0; j < arr2.length; ++j) {
+            if (arr1[i] == arr2[j]) {
+              // If element is in both the arrays
+              common.push(arr1[i]); // Push to common array
+            }
+          }
+        }
         // console.log(arr1)
-        common = [...arr1].filter(d => arr2.includes(d));
+        // common = [...arr1].filter(d => arr2.includes(d));
 
         return common
       }
+
       function calculateScore(d) {
-        console.log(ratingWeight)
         rating = d.rating;
         cat = 0;
         neigh = 0;
-        commonCategory = getCommon(d.categories, chosenCategory);
+        commonCategory = getCommon(d.categories, selectedFilters['category']);
         // commonRating = getCommon(rating, chosenRating);
-        commonNeighborhood = getCommon(d.neighborhood, chosenNeighborhood);
-        // console.log(commonNeighborhood);
-        // console.log(commonRating);
-        // console.log(commonCategory);
-        if (commonCategory.length > 0) {
-          cat = commonCategory.length;
+        commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
+        if (selectedFilters['category'].length > 0) {
+          cat = selectedFilters['category'].length;
         } else {
           cat = 0;
         }
@@ -287,16 +368,17 @@
         // } else {
         //   res = 0;
         // }
-        if (commonNeighborhood.length > 0) {
+        if (selectedFilters['neighborhood'].length > 0) {
           neigh = 1;
         } else {
           neigh = 0;
         }
-        // console.log(ratingWeight)
-        var final =
-          neigh * parseInt(neighborhoodWeight) +
-          rating * ratingWeight +
-          cat * parseInt(categoryWeight);
+        // console.log(weights)
+        final =
+          neigh * (weights['neighborhood']/100) +
+          rating * (weights['rating']/100) +
+          cat * (weights['category']/100);
+        // console.log(final)
         // console.log(final)
         return final;
       }
