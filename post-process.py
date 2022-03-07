@@ -20,7 +20,8 @@ def process_row(row):
         'neighborhood': row['neighborhood'],
         'latitude': float(row['latitude']),
         'longitude': float(row['longitude']),
-        'search_category': row['search category']
+        'search_category': row['search category'],
+        'snippet_text': row['snippet_text']
     }
 
     return res
