@@ -80,14 +80,14 @@
 <div class="col">
   <div id = "details">
     <h3>Details:</h3>
-    <div id="score">
-    </div>
-    <div id="neighborhood">
-    </div>
-    <div id="category">
-    </div>
-    <div id="rating">
-    </div>
+    <h4 id="name"></h4>
+    <div id="score"></div>
+    <div id="neighborhood"></div>
+    <div id="category"></div>
+    <div id="rating"></div>
+    <div id="review_count"></div>
+    <div id="location"></div>
+    <div id="snippet"></div>
   </div>
 
   </div>
@@ -122,11 +122,11 @@
         console.log(restaurants);
 
         var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
-        var neighborhoodList = [...new Set(neighborhood)];
+        var neighborhoodList = [...new Set(neighborhood)].sort();
         var category = d3.map(restaurants, (d) => d["categories"]);
         var categoryList = [];
         var rating = d3.map(restaurants, (d) => d["rating"]);
-        var ratingList = [...new Set(rating)];
+        var ratingList = [...new Set(rating)].sort();
 
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         let filterLists = {'category':categoryList, 'neighborhood':neighborhoodList, 'rating':ratingList}
@@ -142,6 +142,7 @@
           });
         });
 
+        categoryList.sort()
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         console.log(categoryList);
         console.log(neighborhoodList);
@@ -264,16 +265,17 @@
         }
         function updateDetails(d){
           details = d3.select("#details")
+
           if (d === null) {
-            details.select("#score").text("");
-            details.select("#neighborhood").text("");
-            details.select("#category").text("");
-            details.select("#rating").text("")
+            details.selectAll("div").text("")
           } else {
             details.select("#score").text(`Score: ${d.score}`);
             details.select("#category").text(`Categories: ${d.categories}`);
             details.select("#neighborhood").text(`Neighborhood: ${d.neighborhood}`);
             details.select("#rating").text(`Rating: ${d.rating}`);
+            details.select("#review_count").text(`Review Count: ${d.review_count}`);
+            details.select("#location").text(`Address: ${d.location["display_address"]}`);
+            details.select("#snippet").text(`Sample review: ${d.snippet_text}`);
           }
         }
         function resetSim() {
