@@ -183,12 +183,12 @@
 
         // SCALES
         let scoreExtent = [0, 5];
-        let scoreScale = d3
-          .scaleLinear()
-          .domain(scoreExtent)
-          .range([0, chartWidth]);
-        let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 12]);
-        let forceScale = d3.scaleLinear().domain(scoreExtent).range([100, 10]);
+        // let scoreScale = d3
+        //   .scaleLinear()
+        //   .domain(scoreExtent)
+        //   .range([0, chartWidth]);
+        let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 14]);
+        let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
         let colorScale = d3
           .scaleSequential()
           .domain(scoreExtent)
@@ -245,7 +245,7 @@
             else {
               if (!(activeDetails > 3)) {
                 selectedPoints.push(d)
-                d3.select(this).style("stroke", "black").style("stroke-width", 2)
+                d3.select(this).style("stroke", "red").style("stroke-width", 2)
                 updateAllDetails()
               }
               else {
@@ -268,7 +268,7 @@
               .x(chartWidth / 2)
               .y(chartHeight / 2)
               .radius((d) => forceScale(d.score))
-              .strength(1)
+              .strength(0.3)
           )
           // .force("ypos", d3.forceY()
           //                  .y(chartHeight/2)
@@ -315,14 +315,14 @@
             details.selectAll("div").text("")
           } else {
             details.select("#name").text(`${d.name}`)
-            details.select("#score").text(`Score: ${d.score.toFixed(2)}`);
-            details.select("#category").text(`Categories: ${d.categories}`);
+            details.select("#score").text(`Score: ${d.score}`);
+            details.select("#category").text(`Categories: ${d.categories.join(", ")}`);
             details
               .select("#neighborhood")
               .text(`Neighborhood: ${d.neighborhood}`);
             details.select("#rating").text(`Rating: ${d.rating}`);
             details.select("#review_count").text(`Review Count: ${d.review_count}`);
-            details.select("#location").text(`Address: ${d.location["display_address"]}`);
+            details.select("#location").text(`Address: ${d.location["display_address"].join(", ")}`);
             // details.select("#snippet").text(`Sample review: ${d.snippet_text}`);
           }
         }
@@ -345,6 +345,10 @@
           simulation.nodes(restaurants);
           simulation.alpha(1);
           simulation.restart();
+        }
+
+        function disableFilters(elt, type) {
+
         }
 
         function filterClicked(elt, type) {
@@ -452,8 +456,11 @@
         // commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
         num_selected = selectedFilters["category"].length;
         if (num_selected > 0) {
+          console.log(d.categories)
           common = getCommon(d.categories, selectedFilters["category"]);
+          console.log(common)
           cat = (common / num_selected) * 5;
+          console.log(cat)
         }
         // if (commonRating.length > 0) {
         //   res = commonRating.length;
@@ -471,7 +478,8 @@
           neigh * (weights["neighborhood"] / 100) +
           rating * (weights["rating"] / 100) +
           cat * (weights["category"] / 100);
-        return final;
+        console.log(final)
+        return final.toFixed(2);
       }
       createDetails();
       requestData();
