@@ -3,6 +3,28 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <style>
+      body{
+        font-family: Palatino;
+      }
+      button {
+        font-size: 12px;
+        padding: 10px;
+        margin: 2px;
+        border: #d3d6da solid 2px;
+        color: #000000;
+        background-color: #d3d6da;
+      }
+      button:hover {
+        padding: 10px;
+        margin: 2px;
+        border: #d3d6da solid 2px;
+        color: #000000;
+        background-color: red;
+        font-weight: bold;
+      }
+      .clicked{
+        background-color: red;
+      }
       line.dashed {
         stroke: #aaa;
         stroke-width: 1px;
@@ -13,15 +35,18 @@
         flex-direction: row;
       }
       .col {
-        width:450px;
         display: flex;
         flex-direction: column;
+        margin-right: 40px;
+      }
+      #filters{
+        width:1000px;
       }
     </style>
   </head>
   <body>
   <div class="row">
-    <div class="col">
+    <div class="col" id ="filters">
     <div class="row" id="sliders">
       <div class="slide">
         <h3>Category</h3>
@@ -43,7 +68,26 @@
     <h3>Choose your Rating</h3>
     <div id="rating-buttons"></div>
 </div>
-<svg id="bubble" height="400" width="700"></svg>
+<div class="col">
+<h2>Find the perfect Boston Restaurant!</h2>
+<p>Discover restaurants that closely match your interest with this interactive bubble chart! Filter restaurants by certain criteria across neighborhood, criteria, and rating! 
+</p>
+<svg id="bubble" height="400" width="400"></svg>
+</div>
+<div class="col">
+  <div id = "details">
+    <h3>Details:</h3>
+    <div id="score">
+    </div>
+    </div>
+    <div id="neighborhood">
+    </div>
+    <div id="category">
+    </div>
+    <div id="rating">
+    </div>
+  </div>
+</div>
 </div>
 </div>
 
@@ -214,7 +258,19 @@
             d.score = calculateScore(d)
           })
         }
-
+        function updateDetails(d){
+          if (idNumber === "") {
+          details.select("#score").text("");
+          details.select("#neighborhood").text("");
+          details.select("#category").text("");
+          details.select("#rating").text("")
+        } else {
+          details.select("#score").text(d.score);
+          details.select("#category").text(`Categories selected: ${d.category}`);
+          details.select("#neighborhood").text(`Neighborhood selected: ${d.neighborhood}`);
+          details.select("#rating").text(`Rating selected: ${d.rating}`);
+        }
+        }
         function resetSim() {
           updateScores();
           simulation.nodes(restaurants)
@@ -227,10 +283,13 @@
           if (elt.attr("clicked") === 'false') {
             selectedFilters[type].push(selected);
             elt.attr("clicked", "true")
+            elt.classed("clicked", true)
+
           }
           else {
             selectedFilters[type] = selectedFilters[type].filter(d => d !== selected)
             elt.attr("clicked", "false")
+            elt.classed("clicked", false)
           }
 
           //REFILTER DATA AND RESTART SIM
@@ -245,6 +304,7 @@
                 .append("button")
                 .attr("clicked", "false")
                 .text(d)
+                .classed("clicked", false)
                 .on("click", function () {
                   filterClicked(d3.select(this), type);
                 });
@@ -297,6 +357,7 @@
         }
 
         createFilters();
+        updateDetails("");
       }; //END REQUEST DATA
 
       function getCommon(included, selected) {
