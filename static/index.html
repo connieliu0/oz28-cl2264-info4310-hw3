@@ -70,7 +70,7 @@
 </div>
 <div class="col">
 <h2>Find the perfect Boston Restaurant!</h2>
-<p>Discover restaurants that closely match your interest with this interactive bubble chart! Filter restaurants by certain criteria across neighborhood, criteria, and rating! 
+<p>Discover restaurants that closely match your interest with this interactive bubble chart! Filter restaurants by certain criteria across neighborhood, criteria, and rating!
 </p>
 <svg id="bubble" height="400" width="400"></svg>
 </div>
@@ -79,7 +79,6 @@
     <h3>Details:</h3>
     <div id="score">
     </div>
-    </div>
     <div id="neighborhood">
     </div>
     <div id="category">
@@ -87,8 +86,8 @@
     <div id="rating">
     </div>
   </div>
-</div>
-</div>
+
+  </div>
 </div>
 
     <script>
@@ -202,11 +201,13 @@
           .attr("fill", d => colorScale(d.score))
           .on("mouseover", function () {
             d3.select(this)
-              .attr("r", (d) => radScale(d.score)+2)
+              .attr("r", (d) => radScale(d.score)+2);
+            updateDetails(d3.select(this).datum())
           })
           .on("mouseout", function() {
             d3.select(this)
               .attr("r", (d) => radScale(d.score))
+              updateDetails(null)
           });
 
         var simulation = d3
@@ -259,17 +260,18 @@
           })
         }
         function updateDetails(d){
-          if (idNumber === "") {
-          details.select("#score").text("");
-          details.select("#neighborhood").text("");
-          details.select("#category").text("");
-          details.select("#rating").text("")
-        } else {
-          details.select("#score").text(d.score);
-          details.select("#category").text(`Categories selected: ${d.category}`);
-          details.select("#neighborhood").text(`Neighborhood selected: ${d.neighborhood}`);
-          details.select("#rating").text(`Rating selected: ${d.rating}`);
-        }
+          details = d3.select("#details")
+          if (d === null) {
+            details.select("#score").text("");
+            details.select("#neighborhood").text("");
+            details.select("#category").text("");
+            details.select("#rating").text("")
+          } else {
+            details.select("#score").text(`Score: ${d.score}`);
+            details.select("#category").text(`Categories: ${d.categories}`);
+            details.select("#neighborhood").text(`Neighborhood: ${d.neighborhood}`);
+            details.select("#rating").text(`Rating: ${d.rating}`);
+          }
         }
         function resetSim() {
           updateScores();
@@ -357,7 +359,7 @@
         }
 
         createFilters();
-        updateDetails("");
+        updateDetails(null);
       }; //END REQUEST DATA
 
       function getCommon(included, selected) {
