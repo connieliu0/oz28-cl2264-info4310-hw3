@@ -53,7 +53,10 @@
         width: 500px;
       }
       #middle {
-        width: 400px;
+        width: 500px;
+      }
+      #mouseover {
+        height: 20px;
       }
     </style>
   </head>
@@ -92,16 +95,11 @@
           interactive bubble chart! Filter restaurants by certain criteria
           across neighborhood, criteria, and rating!
         </p>
-        <svg id="bubble" height="400" width="400"></svg>
+        <div id="mouseover">Hover over a point to preview it and click to see more details!</div>
+        <svg id="bubble" height="500" width="500"></svg>
       </div>
-      <div class="col">
-        <div id="details">
-          <h3>Details:</h3>
-          <div id="score"></div>
-          <div id="neighborhood"></div>
-          <div id="category"></div>
-          <div id="rating"></div>
-        </div>
+      <div class="col" id="details-container">
+
       </div>
     </div>
 
@@ -126,6 +124,8 @@
       let filterTypes = ["category", "neighborhood", "rating"];
       let selectedFilters = { category: [], neighborhood: [], rating: [] };
       let weights = { category: 33, neighborhood: 33, rating: 33 };
+      let selectedPoints = [];
+      let activeDetails = 1;
 
       const requestData = async function () {
         //LOAD DATA
@@ -134,11 +134,11 @@
         console.log(restaurants);
 
         var neighborhood = d3.map(restaurants, (d) => d["neighborhood"]);
-        var neighborhoodList = [...new Set(neighborhood)];
+        var neighborhoodList = [...new Set(neighborhood)].sort();
         var category = d3.map(restaurants, (d) => d["categories"]);
         var categoryList = [];
         var rating = d3.map(restaurants, (d) => d["rating"]);
-        var ratingList = [...new Set(rating)];
+        var ratingList = [...new Set(rating)].sort();
 
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         let filterLists = {
@@ -158,6 +158,7 @@
           });
         });
 
+        categoryList.sort()
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         console.log(categoryList);
         console.log(neighborhoodList);
@@ -196,7 +197,6 @@
           .scaleSequential()
           .domain(scoreExtent)
           .interpolator(d3.interpolateGreys);
-        console.log(colorScale(3));
 
         // annotations
         //   .append("line")
@@ -216,6 +216,7 @@
         //   )
         //   .call(scoreAxis);
 
+        // POINTS
         points
           .selectAll("circle")
           .data(restaurants)
@@ -225,12 +226,36 @@
           .attr("cy", (d) => d.y)
           .attr("fill", (d) => colorScale(d.score))
           .on("mouseover", function () {
-            d3.select(this).attr("r", (d) => radScale(d.score) + 2);
-            updateDetails(d3.select(this).datum());
+            point = d3.select(this)
+            point.attr("r", (d) => radScale(d.score) + 2);
+            // updateDetails(d3.select(this).datum(), activeDetails);
+            dat = point.datum()
+            d3.select("#mouseover").text(`${dat.name}, score: ${dat.score}`)
           })
           .on("mouseout", function () {
             d3.select(this).attr("r", (d) => radScale(d.score));
-            updateDetails(null);
+            p = d3.select(this).datum()
+            d3.select("#mouseover").text("Hover over a point to preview it and click to see more details!")
+            // updateDetails(null, activeDetails);
+
+          })
+          .on("click", function() {
+            d = d3.select(this).datum()
+            if (selectedPoints.includes(d)) {
+              selectedPoints = selectedPoints.filter(f => f !== d);
+              d3.select(this).style("stroke-width", 0)
+              updateAllDetails()
+            }
+            else {
+              if (!(activeDetails > 3)) {
+                selectedPoints.push(d)
+                d3.select(this).style("stroke", "black").style("stroke-width", 2)
+                updateAllDetails()
+              }
+              else {
+                d3.select("div#mouseover").text("You may only select 3 points at a time. Please deselect a point to select another one.")
+              }
+            }
           });
 
         var simulation = d3
@@ -265,9 +290,13 @@
               .forceCollide()
               .radius((d) => radScale(d.score) + 2)
               .iterations(2)
+              .strength(1)
           )
           .on("tick", updatePoints);
 
+
+
+        //UPDATE FUNCTIONS
         function updatePoints() {
           points
             .selectAll("circle")
@@ -282,22 +311,39 @@
             d.score = calculateScore(d);
           });
         }
-        function updateDetails(d) {
-          details = d3.select("#details");
+
+        function updateDetails(d, id){
+          details = d3.select(`#details${id}`)
           if (d === null) {
-            details.select("#score").text("Nothing has been selected yet!");
-            details.select("#neighborhood").text("");
-            details.select("#category").text("");
-            details.select("#rating").text("");
+            details.selectAll("h4").text("")
+            details.selectAll("div").text("")
           } else {
-            details.select("#score").text(`Score: ${d.score}`);
+            details.select("#name").text(`${d.name}`)
+            details.select("#score").text(`Score: ${d.score.toFixed(2)}`);
             details.select("#category").text(`Categories: ${d.categories}`);
             details
               .select("#neighborhood")
               .text(`Neighborhood: ${d.neighborhood}`);
             details.select("#rating").text(`Rating: ${d.rating}`);
+            details.select("#review_count").text(`Review Count: ${d.review_count}`);
+            details.select("#location").text(`Address: ${d.location["display_address"]}`);
+            // details.select("#snippet").text(`Sample review: ${d.snippet_text}`);
           }
         }
+
+        function updateAllDetails() {
+          for (let i=0; i<3; i++) {
+            // console.log(d,i+1)
+            if (i < selectedPoints.length) {
+              updateDetails(selectedPoints[i], i+1)
+            }
+            else {
+              updateDetails(null, i+1)
+            }
+          }
+          activeDetails = selectedPoints.length+1
+        }
+
         function resetSim() {
           updateScores();
           simulation.nodes(restaurants);
@@ -339,11 +385,6 @@
           });
         }
 
-        function filterData() {
-          filtered = [];
-          restaurants.forEach((d) => {});
-        }
-
         function sliderMoved(elt, d) {
           old_weight = weights[d];
           new_weight = parseInt(elt.property("value"));
@@ -376,8 +417,24 @@
         }
 
         createFilters();
-        updateDetails(null);
-      }; //END REQUEST DATA
+        updateDetails(null, 0);
+      };
+      //END REQUEST DATA
+
+      function createDetails() {
+        container = d3.select("#details-container")
+        for (let i=0; i<3; i+=1) {
+          div = container.append("div")
+                   .attr("id", `details${i+1}`)
+          div.append("h4")
+             .attr("id", "name")
+          fields = ["score", "neighborhood", "category", "rating", "review_count", "location"]
+          fields.forEach(f => {
+            div.append("div")
+               .attr("id", f)
+          });
+        }
+      }
 
       function getCommon(included, selected) {
         count = 0;
@@ -397,7 +454,6 @@
 
         // commonRating = getCommon(rating, chosenRating);
         // commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
-        console.log(selectedFilters["category"]);
         num_selected = selectedFilters["category"].length;
         if (num_selected > 0) {
           common = getCommon(d.categories, selectedFilters["category"]);
@@ -409,22 +465,19 @@
         //   res = 0;
         // }
         if (selectedFilters["neighborhood"].length > 0) {
-          console.log(selectedFilters["neighborhood"]);
           if (selectedFilters["neighborhood"].includes(d.neighborhood)) {
             neigh = 5;
           } else {
             neigh = 0;
           }
         }
-        // console.log(weights)
         final =
           neigh * (weights["neighborhood"] / 100) +
           rating * (weights["rating"] / 100) +
           cat * (weights["category"] / 100);
-        // console.log(final)
-        console.log(final);
         return final;
       }
+      createDetails();
       requestData();
     </script>
   </body>
