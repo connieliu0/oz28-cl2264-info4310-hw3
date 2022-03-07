@@ -51,6 +51,9 @@
       #middle {
         width: 500px;
       }
+      #mouseover {
+        height: 20px;
+      }
     </style>
   </head>
   <body>
@@ -88,6 +91,7 @@
           interactive bubble chart! Filter restaurants by certain criteria
           across neighborhood, criteria, and rating!
         </p>
+        <div id="mouseover">Hover over a point to preview it and click to see more details!</div>
         <svg id="bubble" height="500" width="500"></svg>
       </div>
       <div class="col" id="details-container">
@@ -189,7 +193,6 @@
           .scaleSequential()
           .domain(scoreExtent)
           .interpolator(d3.interpolateGreys);
-        console.log(colorScale(3));
 
         // annotations
         //   .append("line")
@@ -219,13 +222,17 @@
           .attr("cy", (d) => d.y)
           .attr("fill", (d) => colorScale(d.score))
           .on("mouseover", function () {
-            d3.select(this).attr("r", (d) => radScale(d.score) + 2);
-            updateDetails(d3.select(this).datum(), activeDetails);
+            point = d3.select(this)
+            point.attr("r", (d) => radScale(d.score) + 2);
+            // updateDetails(d3.select(this).datum(), activeDetails);
+            dat = point.datum()
+            d3.select("#mouseover").text(`${dat.name}, score: ${dat.score}`)
           })
           .on("mouseout", function () {
             d3.select(this).attr("r", (d) => radScale(d.score));
             p = d3.select(this).datum()
-            updateDetails(null, activeDetails);
+            d3.select("#mouseover").text("Hover over a point to preview it and click to see more details!")
+            // updateDetails(null, activeDetails);
 
           })
           .on("click", function() {
@@ -240,6 +247,9 @@
                 selectedPoints.push(d)
                 d3.select(this).style("stroke", "black").style("stroke-width", 2)
                 updateAllDetails()
+              }
+              else {
+                d3.select("div#mouseover").text("You may only select 3 points at a time. Please deselect a point to select another one.")
               }
             }
           });
@@ -280,6 +290,9 @@
           )
           .on("tick", updatePoints);
 
+
+
+        //UPDATE FUNCTIONS
         function updatePoints() {
           points
             .selectAll("circle")
@@ -294,7 +307,7 @@
             d.score = calculateScore(d);
           });
         }
-        
+
         function updateDetails(d, id){
           details = d3.select(`#details${id}`)
           if (d === null) {
@@ -368,11 +381,6 @@
           });
         }
 
-        function filterData() {
-          filtered = [];
-          restaurants.forEach((d) => {});
-        }
-
         function sliderMoved(elt, d) {
           old_weight = weights[d];
           new_weight = parseInt(elt.property("value"));
@@ -406,7 +414,8 @@
 
         createFilters();
         updateDetails(null, 0);
-      }; //END REQUEST DATA
+      };
+      //END REQUEST DATA
 
       function createDetails() {
         container = d3.select("#details-container")
@@ -441,7 +450,6 @@
 
         // commonRating = getCommon(rating, chosenRating);
         // commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
-        console.log(selectedFilters["category"]);
         num_selected = selectedFilters["category"].length;
         if (num_selected > 0) {
           common = getCommon(d.categories, selectedFilters["category"]);
