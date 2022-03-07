@@ -13,7 +13,7 @@
         flex-direction: row;
       }
       .col {
-        width:400px;
+        width:450px;
         display: flex;
         flex-direction: column;
       }
@@ -22,7 +22,7 @@
   <body>
   <div class="row">
     <div class="col">
-    <div class="row">
+    <div class="row" id="sliders">
       <div class="slide">
         <h3>Category</h3>
         <input type="range" id="category" min=0 max=100 step=1 />
@@ -85,7 +85,6 @@
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
         let filterLists = {'category':categoryList, 'neighborhood':neighborhoodList, 'rating':ratingList}
 
-
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
           d.x = d3.randomUniform(0, chartWidth)();
@@ -110,6 +109,17 @@
               resetSim();
           });
         });
+
+        d3.select("div#sliders")
+          .append("button")
+          .text('Reset weights')
+          .on("click", function () {
+            console.log('hello');
+            // filterTypes.forEach(f => {
+            //   weights[f] = 33
+            //   d3.select(`input#${f}`).attr("value", 33)
+            // })
+          });
         // d3.select("#category")
         //   .attr('value', 1)
         //   .on("input", function () {
@@ -136,6 +146,8 @@
         let scoreScale = d3.scaleLinear().domain(scoreExtent).range([0, chartWidth]);
         let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 12]);
         let forceScale = d3.scaleLinear().domain(scoreExtent).range([100, 10]);
+        let neighborhoodScale = d3.scaleOrdinal(d3.schemeCategory10)
+        console.log(neighborhoodScale('Financial District'))
 
         // annotations
         //   .append("line")
@@ -162,8 +174,7 @@
           .attr("r", (d) => radScale(d.score))
           .attr("cx", (d) => d.x)
           .attr("cy", (d) => d.y)
-
-          .attr("fill", "steelblue");
+          .attr("fill", d => neighborhoodScale(d.neighborhood));
 
         var simulation = d3
           .forceSimulation()
@@ -353,15 +364,13 @@
 
       function calculateScore(d) {
         rating = d.rating;
-        cat = 0;
-        neigh = 0;
+        cat = 2.5;
+        neigh = 2.5;
         commonCategory = getCommon(d.categories, selectedFilters['category']);
         // commonRating = getCommon(rating, chosenRating);
-        commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
+        // commonNeighborhood = getCommon(d.neighborhood, selectedFilters['neighborhood']);
         if (selectedFilters['category'].length > 0) {
           cat = selectedFilters['category'].length;
-        } else {
-          cat = 0;
         }
         // if (commonRating.length > 0) {
         //   res = commonRating.length;
@@ -369,9 +378,15 @@
         //   res = 0;
         // }
         if (selectedFilters['neighborhood'].length > 0) {
-          neigh = 1;
-        } else {
-          neigh = 0;
+          console.log(selectedFilters['neighborhood'])
+          console.log(d.neighborhood)
+          if (selectedFilters['neighborhood'].includes(d.neighborhood)) {
+            neigh = 5;
+            console.log('weee')
+          }
+          else {
+            neigh = 0;
+          }
         }
         // console.log(weights)
         final =
@@ -379,7 +394,7 @@
           rating * (weights['rating']/100) +
           cat * (weights['category']/100);
         // console.log(final)
-        // console.log(final)
+        console.log(final)
         return final;
       }
       requestData();
