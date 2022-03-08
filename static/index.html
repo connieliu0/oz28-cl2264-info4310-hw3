@@ -46,6 +46,9 @@
         flex-direction: column;
         margin-right: 40px;
       }
+      .slide {
+        margin-left:5px;
+      }
       #filters {
         width: 500px;
       }
@@ -66,23 +69,23 @@
         <h3>Choose your Weights</h3>
         <div class="row" id="sliders">
           <div class="slide">
-            <h4>Category</h4>
-            <input type="range" id="category" min="0" max="100" step="1" />
-          </div>
-          <div class="slide">
-            <h4>Neighborhood</h4>
+            <h4 id='neighborhood'>neighborhood: 33</h4>
             <input type="range" id="neighborhood" min="0" max="100" step="1" />
           </div>
           <div class="slide">
-            <h4>Rating</h4>
+            <h4 id='category'>category: 33</h4>
+            <input type="range" id="category" min="0" max="100" step="1" />
+          </div>
+          <div class="slide">
+            <h4 id='rating'>rating: 34</h4>
             <input type="range" id="rating" min="0" max="100" step="1" />
           </div>
         </div>
         <div id="reset"></div>
 
-        <h3>Choose your Neighborhood</h3>
+        <h3>Choose your Neighborhoods</h3>
         <div id="neighborhood-buttons"></div>
-        <h3>Choose your Category</h3>
+        <h3>Choose your Categories</h3>
         <div id="category-buttons"></div>
         <h3>Choose your Rating</h3>
         <div id="rating-buttons"></div>
@@ -123,7 +126,7 @@
       //initialization of global vars
       let filterTypes = ["category", "neighborhood", "rating"];
       let selectedFilters = { category: [], neighborhood: [], rating: [] };
-      let weights = { category: 33, neighborhood: 33, rating: 33 };
+      let weights = { category: 33, neighborhood: 33, rating: 34 };
       let selectedPoints = [];
       let activeDetails = 1;
 
@@ -165,7 +168,7 @@
 
         // create sliders
         filterTypes.forEach((d) => {
-          d3.select(`#${d}`)
+          d3.select(`input#${d}`)
             .attr("value", 33)
             .on("input", function () {
               sliderMoved(d3.select(this), d);
@@ -179,18 +182,23 @@
           .on("click", function () {
             console.log("hello");
             filterTypes.forEach((f) => {
-              weights[f] = 33;
-              d3.select(`input#${f}`).attr("value", 33);
+              if (f === 'ranking') {
+                weights[f] = 34;
+                d3.select(`input#${f}`).attr("value", 34);
+                d3.select(`h4#${f}`).text(`${f}: ${34}`);
+              }
+              else {
+                weights[f] = 33;
+                d3.select(`input#${f}`).attr("value", 33);
+                d3.select(`h4#${f}`).text(`${f}: ${33}`);
+              }
+
             });
             resetSim();
           });
 
         // SCALES
         let scoreExtent = [0, 5];
-        // let scoreScale = d3
-        //   .scaleLinear()
-        //   .domain(scoreExtent)
-        //   .range([0, chartWidth]);
         let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 14]);
         let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
         let colorScale = d3
@@ -228,34 +236,15 @@
           .on("mouseover", function () {
             point = d3.select(this)
             point.attr("r", (d) => radScale(d.score) + 2);
-            // updateDetails(d3.select(this).datum(), activeDetails);
             dat = point.datum()
             d3.select("#mouseover").text(`${dat.name}, score: ${dat.score}`)
           })
           .on("mouseout", function () {
             d3.select(this).attr("r", (d) => radScale(d.score));
-            p = d3.select(this).datum()
             d3.select("#mouseover").text("Hover over a point to preview it and click to see more details!")
-            // updateDetails(null, activeDetails);
-
           })
           .on("click", function() {
-            d = d3.select(this).datum()
-            if (selectedPoints.includes(d)) {
-              selectedPoints = selectedPoints.filter(f => f !== d);
-              d3.select(this).style("stroke-width", 0)
-              updateAllDetails()
-            }
-            else {
-              if (!(activeDetails > 3)) {
-                selectedPoints.push(d)
-                d3.select(this).style("stroke", "red").style("stroke-width", 2)
-                updateAllDetails()
-              }
-              else {
-                d3.select("div#mouseover").text("You may only select 3 points at a time. Please deselect a point to select another one.")
-              }
-            }
+            pointClicked(d3.select(this))
           });
 
         var simulation = d3
@@ -351,6 +340,25 @@
           activeDetails = selectedPoints.length+1
         }
 
+        function pointClicked(elt) {
+          d = elt.datum()
+          if (selectedPoints.includes(d)) {
+            selectedPoints = selectedPoints.filter(f => f !== d);
+            elt.style("stroke-width", 0)
+            updateAllDetails()
+          }
+          else {
+            if (!(activeDetails > 3)) {
+              selectedPoints.push(d)
+              elt.style("stroke", "red").style("stroke-width", 2)
+              updateAllDetails()
+            }
+            else {
+              d3.select("div#mouseover").text("You may only select 3 points at a time. Please deselect a point to select another one.")
+            }
+          }
+        }
+
         function resetSim() {
           updateScores();
           simulation.nodes(restaurants);
@@ -420,9 +428,13 @@
           weights[d] = new_weight;
 
           filterTypes.forEach((f) => {
-            console.log(f, d3.select(`input#${f}`).attr("value"));
+            console.log(`before ${f}`, d3.select(`input#${f}`).attr("value"));
             d3.select(`input#${f}`).attr("value", weights[f]);
-            console.log(f, d3.select(`input#${f}`).attr("value"));
+            console.log(`after ${f}`, d3.select(`input#${f}`).attr("value"));
+            console.log(d3.select(`input#${f}`))
+            console.log(d3.select(`h4#${f}`).text())
+            d3.select(`h4#${f}`).text(`${f}: ${weights[f].toFixed(1)}`)
+            console.log(d3.select(`h4#${f}`).text())
           });
           console.log(weights);
         }
@@ -482,7 +494,7 @@
           neigh * (weights["neighborhood"] / 100) +
           rating * (weights["rating"] / 100) +
           cat * (weights["category"] / 100);
-        console.log(final)
+        // console.log(final)
         return final.toFixed(2);
       }
 
