@@ -49,6 +49,10 @@
       .slide {
         margin-left:5px;
       }
+      .disabled {
+        background-color: lightgrey
+      }
+
       #filters {
         width: 500px;
       }
@@ -126,9 +130,11 @@
       //initialization of global vars
       let filterTypes = ["category", "neighborhood", "rating"];
       let selectedFilters = { category: [], neighborhood: [], rating: [] };
-      let weights = { category: 33, neighborhood: 33, rating: 34 };
+      let weights = { category: 33.0, neighborhood: 33.0, rating: 34.0 };
+      let counts = {'category':{}, 'neighborhood':{}}
       let selectedPoints = [];
       let activeDetails = 1;
+
 
       const requestData = async function () {
         //LOAD DATA
@@ -163,26 +169,24 @@
 
         categoryList.sort()
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
-        console.log(categoryList);
-        console.log(neighborhoodList);
 
-        // create sliders
+        // SLIDERS
         filterTypes.forEach((d) => {
           d3.select(`input#${d}`)
-            .attr("value", 33)
+            .attr("value", weights[d])
             .on("input", function () {
               sliderMoved(d3.select(this), d);
               resetSim();
             });
+          d3.select(`h4#${d}`).text(`${d}: ${weights[d]}`)
         });
 
         d3.select("div#reset")
           .append("button")
           .text("Reset weights")
           .on("click", function () {
-            console.log("hello");
             filterTypes.forEach((f) => {
-              if (f === 'ranking') {
+              if (f === 'rating') {
                 weights[f] = 34;
                 d3.select(`input#${f}`).attr("value", 34);
                 d3.select(`h4#${f}`).text(`${f}: ${34}`);
@@ -250,10 +254,6 @@
         var simulation = d3
           .forceSimulation()
           .nodes(restaurants)
-          // .force("center", d3.forceCenter()
-          //                    .x(chartHeight/2)
-          //                    .y(chartWidth/2)
-          //                    .strength(0.05))
           .force(
             "radial",
             d3
@@ -263,16 +263,6 @@
               .radius((d) => forceScale(d.score))
               .strength(0.3)
           )
-          // .force("ypos", d3.forceY()
-          //                  .y(chartHeight/2)
-          //                  .strength(0.05))
-          // .force("xpos", d3.forceX()
-          //                  .x(d => {
-          //                    // console.log(d)
-          //                    // console.log(scoreScale(d.score))
-          //                    return scoreScale(d.score)
-          //                  })
-          //                  .strength(0.05))
           .force(
             "collision",
             d3
@@ -282,8 +272,6 @@
               .strength(1)
           )
           .on("tick", updatePoints);
-
-
 
         //UPDATE FUNCTIONS
         function updatePoints() {
@@ -329,7 +317,6 @@
             d3.select("#details-header").text("Details")
           }
           for (let i=0; i<3; i++) {
-            // console.log(d,i+1)
             if (i < num_selected) {
               updateDetails(selectedPoints[i], i+1)
             }
@@ -366,8 +353,42 @@
           simulation.restart();
         }
 
-        function disableFilters(elt, type) {
+        function countValidPoints() {
+          nCounts = {}
+          cCounts = {}
+          restaurants.forEach(d => {
+            n = true
+            c = true
+            if (selectedFilters['category'].length > 0) {
+              c = getCommon(selectedFilters['category'], d.categories) > 0
+            }
+            if (selectedFilters['neighborhood'].length > 0) {
+              n = selectedFilters['neighborhood'].includes(d.neighborhood)
+            }
 
+            if (n && c) {
+              if (Object.keys(nCounts).includes(d.neighborhood)) {
+                nCounts[d.neighborhood] += 1
+              }
+              else {
+                nCounts[d.neighborhood] = 1
+              }
+
+              d.categories.forEach(c => {
+                if (Object.keys(nCounts).includes(c)) {
+                  cCounts[c] += 1
+                }
+                else {
+                  cCounts[c] = 1
+                }
+              })
+            }
+          })
+
+          counts['neighborhood'] = nCounts
+          counts['category'] = cCounts
+          console.log(nCounts)
+          console.log(cCounts)
         }
 
         function filterClicked(elt, type) {
@@ -384,7 +405,7 @@
             elt.classed("clicked", false);
           }
 
-          //REFILTER DATA AND RESTART SIM
+          updateFilters();
           resetSim();
         }
 
@@ -402,6 +423,29 @@
                 });
             });
           });
+        }
+
+        function updateFilters() {
+          console.log(selectedFilters)
+          countValidPoints();
+          filterTypes.slice(0,2).forEach(type => {
+            console.log("hi")
+            container = d3.select(`div#${type}-buttons`).selectAll("button");
+            container.each(function() {
+              b = d3.select(this)
+              selected = Object.keys(counts[type])
+              console.log(selected)
+              if (!selected.includes(b.text())) {
+                b.attr("disabled", true)
+                b.classed("disabled", true)
+              }
+              else {
+                b.attr("disabled", null)
+                b.classed("disabled", false)
+              }
+              console.log(b)
+            })
+          })
         }
 
         function sliderMoved(elt, d) {
@@ -428,15 +472,15 @@
           weights[d] = new_weight;
 
           filterTypes.forEach((f) => {
-            console.log(`before ${f}`, d3.select(`input#${f}`).attr("value"));
+            // console.log(`before ${f}`, d3.select(`input#${f}`).attr("value"));
             d3.select(`input#${f}`).attr("value", weights[f]);
-            console.log(`after ${f}`, d3.select(`input#${f}`).attr("value"));
-            console.log(d3.select(`input#${f}`))
-            console.log(d3.select(`h4#${f}`).text())
+            // console.log(`after ${f}`, d3.select(`input#${f}`).attr("value"));
+            // console.log(d3.select(`input#${f}`))
+            // console.log(d3.select(`h4#${f}`).text())
             d3.select(`h4#${f}`).text(`${f}: ${weights[f].toFixed(1)}`)
-            console.log(d3.select(`h4#${f}`).text())
+            // console.log(d3.select(`h4#${f}`).text())
           });
-          console.log(weights);
+          // console.log(weights);
         }
 
         createFilters();
@@ -477,11 +521,11 @@
 
         num_selected = selectedFilters["category"].length;
         if (num_selected > 0) {
-          console.log(d.categories)
+          // console.log(d.categories)
           common = getCommon(d.categories, selectedFilters["category"]);
-          console.log(common)
+          // console.log(common)
           cat = (common / num_selected) * 5;
-          console.log(cat)
+          // console.log(cat)
         }
         if (selectedFilters["neighborhood"].length > 0) {
           if (selectedFilters["neighborhood"].includes(d.neighborhood)) {

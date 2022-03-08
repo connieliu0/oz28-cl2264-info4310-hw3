@@ -14,7 +14,7 @@ def process_row(row):
         'name': row['name'],
         'url': row['url'],
         'review_count': int(row['review_count']),
-        'categories': categories,
+        'category': categories,
         'rating': float(row['rating']),
         'location': json.loads(row['location']),
         'neighborhood': row['neighborhood'],
