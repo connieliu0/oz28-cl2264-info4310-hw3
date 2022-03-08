@@ -133,6 +133,14 @@
       let selectedPoints = [];
       let activeDetails = 1;
 
+      // SCALES
+      let scoreExtent = [0, 5];
+      let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 14]);
+      let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
+      let colorScale = d3
+        .scaleSequential()
+        .domain(scoreExtent)
+        .interpolator(d3.interpolateGreys);
 
       const requestData = async function () {
         //LOAD DATA
@@ -221,15 +229,6 @@
             });
             resetSim();
           });
-
-        // SCALES
-        let scoreExtent = [0, 5];
-        let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 14]);
-        let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
-        let colorScale = d3
-          .scaleSequential()
-          .domain(scoreExtent)
-          .interpolator(d3.interpolateGreys);
 
         // POINTS
         points
@@ -446,6 +445,40 @@
           })
         }
 
+        function calculateScore(d) {
+          ext = d3.extent(restaurants, d => d.rating)
+          console.log(ext)
+          min_score = ext[0]
+          max_score = ext[1]
+          console.log(min_score)
+          rating = (d.rating-min_score)/(max_score-min_score); //normalize
+          console.log(rating)
+          cat = 1;
+          neigh = 1;
+          wgts = calculateWeights()
+
+          num_selected = selectedFilters["category"].length;
+          if (num_selected > 0) {
+            common = getCommon(d.categories, selectedFilters["category"]);
+            cat = (common / num_selected);
+          }
+          if (selectedFilters["neighborhood"].length > 0) {
+            if (selectedFilters["neighborhood"].includes(d.neighborhood)) {
+              neigh = 1;
+            } else {
+              neigh = 0;
+            }
+          }
+          // final =
+          //   neigh * (weights["neighborhood"] / 100) +
+          //   rating * (weights["rating"] / 100) +
+          //   cat * (weights["category"] / 100);
+          final = (neigh*wgts['neighborhood']+rating*wgts['rating']+cat*wgts['category'])*5;
+          // console.log(final)
+          return final.toFixed(2);
+        }
+
+        //UNUSED OLD CODE
         function sliderMoved(elt, d) {
           old_weight = weights[d];
           new_weight = parseInt(elt.property("value"));
@@ -577,35 +610,7 @@
 
       }
 
-      function calculateScore(d) {
-        rating = d.rating; //normalize
-        cat = 2.5;
-        neigh = 2.5;
-        wgts = calculateWeights()
 
-        num_selected = selectedFilters["category"].length;
-        if (num_selected > 0) {
-          common = getCommon(d.categories, selectedFilters["category"]);
-          cat = (common / num_selected) * 5;
-        }
-        if (selectedFilters["neighborhood"].length > 0) {
-          if (selectedFilters["neighborhood"].includes(d.neighborhood)) {
-            neigh = 5;
-          } else {
-            neigh = 0;
-          }
-        }
-        // final =
-        //   neigh * (weights["neighborhood"] / 100) +
-        //   rating * (weights["rating"] / 100) +
-        //   cat * (weights["category"] / 100);
-        final =
-          neigh*wgts['neighborhood']+
-          rating*wgts['rating']+
-          cat*wgts['category'];
-        console.log(final)
-        return final.toFixed(2);
-      }
 
       createDetails();
       requestData();
