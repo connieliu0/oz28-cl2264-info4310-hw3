@@ -111,7 +111,7 @@
       const bubble = d3.select("#bubble");
       const width = bubble.attr("width");
       const height = bubble.attr("height");
-      const margins = { top: 10, bottom: 10, left: 30, right: 30 };
+      const margins = { top: 30, bottom: 30, left: 30, right: 30 };
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
@@ -176,9 +176,7 @@
         categoryList.sort()
         neighborhoodList = neighborhoodList.filter((d) => d !== "");
 
-        // SLIDERS
-        // <!-- <input type="radio" name="neighborhood-weights" value="High" id="high" />
-        // <label for="high">High</label>
+        // WEIGHT BUTTONS
         levels = ['high','medium','low']
         filterTypes.forEach((f) => {
           container = d3.select(`div.weight#${f}`)
@@ -555,26 +553,56 @@
         }
         else if (n === c) {
           if (r > n) {
-            return {'neighborhood':0.2, 'category':0.2, 'rating':0.6}
+            if (r-n === 2) {
+              return {'neighborhood':0.1, 'category':0.1, 'rating':0.8}
+            }
+            else {
+              return {'neighborhood':0.2, 'category':0.2, 'rating':0.6}
+            }
           }
           else {
-            return {'neighborhood':0.4, 'category':0.4, 'rating':0.2}
+            if (n-r === 2) {
+              return {'neighborhood':0.45, 'category':0.45, 'rating':0.1}
+            }
+            else {
+              return {'neighborhood':0.4, 'category':0.4, 'rating':0.2}
+            }
           }
         }
         else if (n === r) {
           if (c > n) {
-            return {'neighborhood':0.2, 'category':0.6, 'rating':0.2}
+            if (c-n===2) {
+              return {'neighborhood':0.1, 'category':0.8, 'rating':0.1}
+            }
+            else {
+              return {'neighborhood':0.2, 'category':0.6, 'rating':0.2}
+            }
           }
           else {
-            return {'neighborhood':0.4, 'category':0.2, 'rating':0.4}
+            if (n-c===2) {
+              return {'neighborhood':0.45, 'category':0.1, 'rating':0.45}
+            }
+            else {
+              return {'neighborhood':0.4, 'category':0.2, 'rating':0.4}
+            }
           }
         }
         else if (c === r) {
           if (n > c) {
-            return {'neighborhood':0.6, 'category':0.2, 'rating':0.2}
+            if (n-c===2){
+              return {'neighborhood':0.8, 'category':0.1, 'rating':0.1}
+            }
+            else {
+              return {'neighborhood':0.6, 'category':0.2, 'rating':0.2}
+            }
           }
           else {
-            return {'neighborhood':0.2, 'category':0.4, 'rating':0.4}
+            if (c-n===2) {
+              return {'neighborhood':0.1, 'category':0.45, 'rating':0.45}
+            }
+            else {
+              return {'neighborhood':0.2, 'category':0.4, 'rating':0.4}
+            }
           }
         }
         else if (c > r && c > n) {
