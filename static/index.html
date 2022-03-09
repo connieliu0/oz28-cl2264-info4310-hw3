@@ -20,7 +20,7 @@
         border: #d3d6da solid 2px;
         color: #ffffff;
         border: #d3d6da solid 0px;
-        background-color: rgb(105, 116, 216);
+        background-color: rgb(191, 136, 255);
       }
       button.disabled:hover {
         margin: 2px;
@@ -165,7 +165,7 @@ background-color: #ffffff;
       let colorScale = d3
         .scaleSequential()
         .domain(scoreExtent)
-        .interpolator(d3.interpolateMagma);
+        .interpolator(d3.interpolateYlGn);
 
       const requestData = async function () {
         //LOAD DATA
@@ -378,7 +378,7 @@ background-color: #ffffff;
           } else {
             if (!(activeDetails > 3)) {
               selectedPoints.push(d);
-              elt.style("stroke", "red").style("stroke-width", 2);
+              elt.style("stroke", "rgb(191, 136, 255)").style("stroke-width", 4);
               updateAllDetails();
             } else {
               d3.select("div#mouseover").text(
@@ -426,6 +426,8 @@ background-color: #ffffff;
 
               tCount += 1;
             }
+            // olivia i tried
+            let totalSatisfying = cCounts.length + nCounts.length;
           });
 
           counts["neighborhood"] = nCounts;
