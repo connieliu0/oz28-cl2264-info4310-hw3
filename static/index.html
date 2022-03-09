@@ -14,7 +14,7 @@
         color: #000000;
         background-color: #ddecff;
       }
-      
+
       button:hover {
         margin: 2px;
         border: #d3d6da solid 2px;
@@ -36,11 +36,6 @@
         border: #d3d6da solid 0px;
         background-color: rgb(105, 116, 216);
       }
-      line.dashed {
-        stroke: #aaa;
-        stroke-width: 1px;
-        stroke-dasharray: 2;
-      }
       .row {
         display: flex;
         flex-direction: row;
@@ -53,19 +48,17 @@
       .disabled {
         background-color: lightgrey;
       }
-
       #filters {
         width: 400px;
-        -webkit-box-shadow: 9px 0px 22px 0px rgba(0,0,0,0.05); 
-box-shadow: 9px 9px 22px 0px rgba(0,0,0,0.05);
-padding: 10px;
+        -webkit-box-shadow: 9px 0px 22px 0px rgba(0,0,0,0.05);
+        box-shadow: 9px 9px 22px 0px rgba(0,0,0,0.05);
+        padding: 10px;
       }
       #reset button {
         width: 400px;
       }
       #clear-filters button{
         width: 400px;
-
       }
       #middle {
         width: 700px;
@@ -74,10 +67,11 @@ padding: 10px;
         height: 20px;
       }
       #details-container{
-        -webkit-box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05); 
-box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05);
-padding: 10px;
-background-color: #ffffff;
+        -webkit-box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05);
+        box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05);
+        padding: 10px;
+        background-color: #ffffff;
+        width:300px;
       }
     </style>
   </head>
@@ -164,8 +158,8 @@ background-color: #ffffff;
       let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
       let colorScale = d3
         .scaleSequential()
-        .domain(scoreExtent)
-        .interpolator(d3.interpolateYlGn);
+        .domain(scoreExtent.reverse())
+        .interpolator(d3.interpolatePlasma);
 
       const requestData = async function () {
         //LOAD DATA
@@ -313,18 +307,18 @@ background-color: #ffffff;
           });
         }
 
-        //CONNIE PLZ FILL THIS ONE IN TY
         function displayOverview() {
-          // there is a variable totalSatisfying that has the number of points that satisfy the current filters
-          d3.select("#details-header").text("Amount Satisfying Criteria");
-          d3.select("#name").text(`${totalSatisfying}`);
+          if (selectedPoints.length === 0) {
+            d3.select("#details-header").text("Amount Satisfying Criteria");
+            d3.select("#name").text(`${totalSatisfying}`);
+          }
         }
 
         function updateDetails(d, id) {
           details = d3.select(`#details${id}`);
           if (d === null) {
             // why this no work
-            details.select("#name").text(`${totalSatisfying}`);
+            // details.select("#name").text(`${totalSatisfying}`);
             details.selectAll("h4").text("");
             details.selectAll("div.text").text("");
             details.select("#link").text("");
@@ -354,11 +348,8 @@ background-color: #ffffff;
 
         function updateAllDetails() {
           num_selected = selectedPoints.length;
-          if (num_selected === 0) {
-            displayOverview();
-          } else {
-            d3.select("#details-header").text("Details");
-          }
+          d3.select("#details-header").text("Details");
+
           for (let i = 0; i < 3; i++) {
             if (i < num_selected) {
               updateDetails(selectedPoints[i], i + 1);
@@ -367,6 +358,11 @@ background-color: #ffffff;
             }
           }
           activeDetails = selectedPoints.length + 1;
+
+          if (num_selected === 0) {
+            console.log('herer')
+            displayOverview();
+          }
         }
 
         function pointClicked(elt) {
@@ -378,7 +374,7 @@ background-color: #ffffff;
           } else {
             if (!(activeDetails > 3)) {
               selectedPoints.push(d);
-              elt.style("stroke", "rgb(191, 136, 255)").style("stroke-width", 4);
+              elt.style("stroke", "rgb(105, 116, 216)").style("stroke-width", 4);
               updateAllDetails();
             } else {
               d3.select("div#mouseover").text(
@@ -452,6 +448,7 @@ background-color: #ffffff;
           }
 
           updateFilters();
+          displayOverview();
           resetSim();
         }
 
@@ -485,6 +482,9 @@ background-color: #ffffff;
                   .classed("disabled", false)
                   .attr("clicked", "false")
                   .classed("clicked", false);
+                countValidPoints();
+                // updateFilters()
+                displayOverview();
               });
               resetSim();
             });
@@ -561,15 +561,9 @@ background-color: #ffffff;
           weights[d] = new_weight;
 
           filterTypes.forEach((f) => {
-            // console.log(`before ${f}`, d3.select(`input#${f}`).attr("value"));
             d3.select(`input#${f}`).attr("value", weights[f]);
-            // console.log(`after ${f}`, d3.select(`input#${f}`).attr("value"));
-            // console.log(d3.select(`input#${f}`))
-            // console.log(d3.select(`h4#${f}`).text())
             d3.select(`h4#${f}`).text(`${f}: ${weights[f].toFixed(1)}`);
-            // console.log(d3.select(`h4#${f}`).text())
           });
-          // console.log(weights);
         }
 
         createFilters();
