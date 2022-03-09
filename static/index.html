@@ -90,6 +90,7 @@
         <div id="category-buttons"></div>
         <!-- <h3>Choose your Rating</h3>
         <div id="rating-buttons"></div> -->
+        <div id="clear-filters"></div>
       </div>
 
       <div class="col" id="middle">
@@ -432,6 +433,22 @@
                 });
             });
           });
+
+          d3.select("#clear-filters")
+            .append("button")
+            .text("Clear all filters")
+            .on("click", function () {
+              filterTypes.forEach(f => {
+                selectedFilters[f] = []
+                d3.select(`div#${f}-buttons`)
+                  .selectAll('button')
+                  .attr("disabled", null)
+                  .classed("disabled", false)
+                  .attr("clicked", "false")
+                  .classed("clicked", false)
+              })
+              resetSim()
+            })
         }
 
         function updateFilters() {
