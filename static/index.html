@@ -25,6 +25,13 @@
         border: #d3d6da solid 0px;
         background-color: rgb(105, 116, 216);
       }
+      button.disabled:hover {
+        margin: 2px;
+        border: #d3d6da solid 2px;
+        color: #ffffff;
+        border: #d3d6da solid 0px;
+        background-color: lightgrey;
+      }
       .clicked {
         margin: 2px;
         border: #d3d6da solid 2px;
@@ -430,7 +437,10 @@
                 .classed("clicked", false)
                 .on("click", function () {
                   filterClicked(d3.select(this), type);
-                });
+                })
+                // .on("hover", function () {
+                //   if d3.select(this).attr("disabled")
+                // });
             });
           });
 
