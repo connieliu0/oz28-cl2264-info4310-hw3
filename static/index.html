@@ -103,7 +103,7 @@
         <svg id="bubble" height="500" width="500"></svg>
       </div>
       <div class="col" id="details-container">
-        <h3 id="details-header">Please select points to show their details!</h3>
+        <h3 id="details-header"></h3>
       </div>
     </div>
 
@@ -134,7 +134,7 @@
       let activeDetails = 1;
 
       // SCALES
-      let scoreExtent = [0, 5];
+      let scoreExtent = [0, 10];
       let radScale = d3.scaleLinear().domain(scoreExtent).range([2, 14]);
       let forceScale = d3.scaleLinear().domain(scoreExtent).range([150, 10]);
       let colorScale = d3
@@ -154,13 +154,8 @@
         var categoryList = [];
         var rating = d3.map(restaurants, (d) => d["rating"]);
         var ratingList = [...new Set(rating)].sort();
-
-        neighborhoodList = neighborhoodList.filter((d) => d !== "");
-        let filterLists = {
-          category: categoryList,
-          neighborhood: neighborhoodList,
-          rating: ratingList,
-        };
+        let ratingExtent = d3.extent(restaurants, d => d.rating)
+        let totalSatisfying = restaurants.length
 
         restaurants.forEach((d) => {
           d["score"] = calculateScore(d);
@@ -174,7 +169,12 @@
         });
 
         categoryList.sort()
-        neighborhoodList = neighborhoodList.filter((d) => d !== "");
+        neighborhoodList = neighborhoodList.filter((d) => d !== "N/A");
+        let filterLists = {
+          category: categoryList,
+          neighborhood: neighborhoodList,
+          rating: ratingList,
+        };
 
         // WEIGHT BUTTONS
         levels = ['high','medium','low']
@@ -289,11 +289,18 @@
           });
         }
 
+        //CONNIE PLZ FILL THIS ONE IN TY
+        function displayOverview() {
+          // there is a variable totalSatisfying that has the number of points that satisfy the current filters
+          d3.select("#details-header").text("Plz do overview details here")
+        }
+
         function updateDetails(d, id){
           details = d3.select(`#details${id}`)
           if (d === null) {
             details.selectAll("h4").text("")
-            details.selectAll("div").text("")
+            details.selectAll("div.text").text("")
+            details.select("#link").text("")
           } else {
             details.select("#name").text(`${d.name}`)
             details.select("#score").text(`Score: ${d.score}`);
@@ -302,8 +309,7 @@
             details.select("#rating").text(`Rating: ${d.rating}`);
             details.select("#review_count").text(`Review Count: ${d.review_count}`);
             details.select("#location").text(`Address: ${d.location["display_address"].join(", ")}`);
-            details.select("#url").append("a")
-                                  .text(`Click here to view it on Yelp!`)
+            details.select("#link").text(`Click here to view it on Yelp!`)
                                   .attr("href", d.url)
                                   .attr("target", "_blank");
           }
@@ -312,7 +318,7 @@
         function updateAllDetails() {
           num_selected = selectedPoints.length
           if (num_selected === 0) {
-            d3.select("#details-header").text("Please select points to show their details!")
+            displayOverview();
           }
           else {
             d3.select("#details-header").text("Details")
@@ -357,6 +363,7 @@
         function countValidPoints() {
           nCounts = {}
           cCounts = {}
+          tCount = 0
           restaurants.forEach(d => {
             n = true
             c = true
@@ -383,11 +390,14 @@
                   cCounts[c] = 1
                 }
               })
+
+              tCount +=1
             }
           })
 
           counts['neighborhood'] = nCounts
           counts['category'] = cCounts
+          totalSatisfying = tCount
         }
 
         function filterClicked(elt, type) {
@@ -444,13 +454,9 @@
         }
 
         function calculateScore(d) {
-          ext = d3.extent(restaurants, d => d.rating)
-          console.log(ext)
-          min_score = ext[0]
-          max_score = ext[1]
-          console.log(min_score)
+          min_score = ratingExtent[0]
+          max_score = ratingExtent[1]
           rating = (d.rating-min_score)/(max_score-min_score); //normalize
-          console.log(rating)
           cat = 1;
           neigh = 1;
           wgts = calculateWeights()
@@ -467,12 +473,8 @@
               neigh = 0;
             }
           }
-          // final =
-          //   neigh * (weights["neighborhood"] / 100) +
-          //   rating * (weights["rating"] / 100) +
-          //   cat * (weights["category"] / 100);
-          final = (neigh*wgts['neighborhood']+rating*wgts['rating']+cat*wgts['category'])*5;
-          // console.log(final)
+
+          final = (neigh*wgts['neighborhood']+rating*wgts['rating']+cat*wgts['category'])*10;
           return final.toFixed(2);
         }
 
@@ -512,6 +514,7 @@
         }
 
         createFilters();
+        displayOverview();
         updateDetails(null, 0);
       };
       //END REQUEST DATA
@@ -523,11 +526,18 @@
                    .attr("id", `details${i+1}`)
           div.append("h4")
              .attr("id", "name")
-          fields = ["score", "neighborhood", "category", "rating", "review_count", "location", "url"]
+          fields = ["score", "neighborhood", "category", "rating", "review_count", "location"]
           fields.forEach(f => {
             div.append("div")
                .attr("id", f)
-          });
+               .attr("class", "text")
+            })
+          url = div.append("div")
+             .attr("id", "url")
+             .append("a")
+             .attr("id","link")
+             .attr("class", "url")
+
         }
       }
 
@@ -635,11 +645,7 @@
           console.log("n", n)
           console.log("c", c)
         }
-
       }
-
-
-
       createDetails();
       requestData();
 

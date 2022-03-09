@@ -8,16 +8,18 @@ def process_row(row):
     cats = json.loads(row['categories'])
     for c in cats:
         categories.append(c[0])
-    # row['location'] = json.loads(row['location'])
+    neighborhood = row['neighborhood']
+    if neighborhood == "":
+        neighborhood = "N/A"
 
     res = {
         'name': row['name'],
         'url': row['url'],
         'review_count': int(row['review_count']),
-        'category': categories,
+        'categories': categories,
         'rating': float(row['rating']),
         'location': json.loads(row['location']),
-        'neighborhood': row['neighborhood'],
+        'neighborhood': neighborhood,
         'latitude': float(row['latitude']),
         'longitude': float(row['longitude']),
         'search_category': row['search category'],
