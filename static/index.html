@@ -309,8 +309,7 @@
 
         function displayOverview() {
           if (selectedPoints.length === 0) {
-            d3.select("#details-header").text("Amount Satisfying Criteria");
-            d3.select("#name").text(`${totalSatisfying}`);
+            d3.select("#details-header").text(`Number of Points Satisfying Filters: ${totalSatisfying}`);
           }
         }
 
