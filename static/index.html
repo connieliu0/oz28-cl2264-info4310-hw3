@@ -52,17 +52,30 @@
       .disabled {
         background-color: lightgrey;
       }
+      h3{
+        margin-top: 5px;
+        margin-bottom: 0px;
+      }
       #filters {
-        width: 400px;
+        width: 600px;
         -webkit-box-shadow: 9px 0px 22px 0px rgba(0,0,0,0.05);
         box-shadow: 9px 9px 22px 0px rgba(0,0,0,0.05);
         padding: 10px;
       }
       #reset button {
-        width: 400px;
+        margin-left: 5px;
+        width: 100px;
+        display: inline;
+      }
+      h1{
+        margin-top: 0px;
+        margin-bottom: 0px;
       }
       #clear-filters button{
-        width: 400px;
+        margin-left: 5px;
+        width: 100px;
+        display: inline;
+
       }
       #middle {
         width: 700px;
@@ -82,8 +95,10 @@
   <body>
     <div class="row">
       <div class="col" id="filters">
+        <div class ="row">
         <h3>Choose your Weights</h3>
         <div id="reset"></div>
+      </div>
         <div class="row" id="weights">
           <div id="neighborhood" class="weight col">
             <p id="neighborhood"><strong>Neighborhood</strong></h4>
@@ -98,10 +113,11 @@
             <!-- <input type="range" id="rating" min="0" max="100" step="1" /> -->
           </div>
         </div>
-
-        <h3>Choose your Filters</h3>
+        <div class ="row">
+        <h3>Choose  Filters</h3>
         <div id="clear-filters"></div>
-        <p><strong>Choose Neighborhoods</strong></p>
+        </div>
+        <p><strong>Choose your Neighborhoods</strong></p>
         <div id="neighborhood-buttons"></div>
         <p><strong>Choose your Categories</strong></p>
         <div id="category-buttons"></div>
@@ -110,7 +126,7 @@
       </div>
 
       <div class="col" id="middle">
-        <h2>Find the perfect Boston Restaurant!</h2>
+        <h3>Find the perfect Boston Restaurant!</h3>
         <p>
           Discover restaurants that closely match your interest with this
           interactive bubble chart! Filter restaurants by certain criteria
