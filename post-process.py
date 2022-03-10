@@ -2,8 +2,6 @@ import csv
 import json
 
 def process_row(row):
-    # name = row['name']
-    # url = row['url']
     categories = []
     cats = json.loads(row['categories'])
     for c in cats:
