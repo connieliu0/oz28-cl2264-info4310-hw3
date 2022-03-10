@@ -85,7 +85,7 @@
       }
       #details-container{
         -webkit-box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05);
-        box-shadow: -9px 0px 22px 0px rgba(0,0,0,0.05);
+        box-shadow: -9px 9px 22px 0px rgba(0,0,0,0.05);
         padding: 10px;
         background-color: #ffffff;
         width:300px;
@@ -121,8 +121,6 @@
         <div id="neighborhood-buttons"></div>
         <p><strong>Choose your Categories</strong></p>
         <div id="category-buttons"></div>
-        <!-- <h3>Choose your Rating</h3>
-        <div id="rating-buttons"></div> -->
       </div>
 
       <div class="col" id="middle">
@@ -161,7 +159,6 @@
       //initialization of global vars
       let filterTypes = ["category", "neighborhood", "rating"];
       let selectedFilters = { category: [], neighborhood: [] };
-      // let weights = { category: 33.0, neighborhood: 33.0, rating: 34.0 };
       let weights = {
         category: "medium",
         neighborhood: "medium",
@@ -335,8 +332,6 @@
         function updateDetails(d, id) {
           details = d3.select(`#details${id}`);
           if (d === null) {
-            // why this no work
-            // details.select("#name").text(`${totalSatisfying}`);
             details.selectAll("h4").text("");
             details.selectAll("div.text").text("");
             details.select("#link").text("");
@@ -378,7 +373,6 @@
           activeDetails = selectedPoints.length + 1;
 
           if (num_selected === 0) {
-            console.log('herer')
             displayOverview();
           }
         }
@@ -440,7 +434,6 @@
 
               tCount += 1;
             }
-            // olivia i tried
             let totalSatisfying = cCounts.length + nCounts.length;
           });
 
@@ -452,7 +445,6 @@
         function filterClicked(elt, type) {
           selected = elt.text();
           updateDetails(null, 0);
-          // confusion
           if (elt.attr("clicked") === "false") {
             selectedFilters[type].push(selected);
             elt.attr("clicked", "true");
@@ -482,9 +474,6 @@
                 .on("click", function () {
                   filterClicked(d3.select(this), type);
                 });
-              // .on("hover", function () {
-              //   if d3.select(this).attr("disabled")
-              // });
             });
           });
 
@@ -501,7 +490,6 @@
                   .attr("clicked", "false")
                   .classed("clicked", false);
                 countValidPoints();
-                // updateFilters()
                 displayOverview();
               });
               resetSim();
@@ -698,11 +686,6 @@
           } else {
             return { neighborhood: 0.6, category: 0.3, rating: 0.1 };
           }
-        } else {
-          console.log("u forgot this");
-          console.log("r", r);
-          console.log("n", n);
-          console.log("c", c);
         }
       }
       createDetails();
