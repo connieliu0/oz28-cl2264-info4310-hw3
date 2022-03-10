@@ -25,7 +25,7 @@
       button.disabled:hover {
         margin: 2px;
         border: #d3d6da solid 2px;
-        color: #ffffff;
+        color: black;
         border: #d3d6da solid 0px;
         background-color: lightgrey;
       }
@@ -374,7 +374,7 @@
           } else {
             if (!(activeDetails > 3)) {
               selectedPoints.push(d);
-              elt.style("stroke", "rgb(105, 116, 216)").style("stroke-width", 4);
+              elt.style("stroke", "#4ccf64").style("stroke-width", 6);
               updateAllDetails();
             } else {
               d3.select("div#mouseover").text(
